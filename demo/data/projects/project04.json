@@ -1,0 +1,11 @@
+{
+  "_includes" : [ "pmo.json", "development.json" ],
+  "My Project" : { 
+    "tasks" : [ 
+      "Meeting Customer",
+      "STD Module#1",
+      "STD Module#2",
+      "Project Acceptance"
+    ]
+  }
+}

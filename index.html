@@ -1,0 +1,313 @@
+<html lang="en">
+<!--
+  Parameters:
+  - config
+  - roles
+  - types
+  - estimations
+  - baseDataURL
+-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title></title>
+  <meta name="description" content="">
+  <meta name="author" content="islegmar@gmail.com">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- Internal -->
+  <link rel="stylesheet" type="text/css" href="css/main.css" media="all">
+  <link rel="stylesheet" type="text/css" href="css/my.css" media="all">
+  <script src="js/utils.js"></script>
+  <script src="js/estimations.js"></script>
+  <script src="js/treeTasks.js"></script>
+
+  <!-- External -->
+  <!--
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"> 
+  <style>
+  body {
+    grid-template-columns: 1fr 95% 1fr !important;
+  }
+  </style>
+  -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+  <script src="https://cdn.rawgit.com/caldwell/renderjson/master/renderjson.js"></script>
+  <!-- jsTree : https://www.jstree.com/ -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstreegrid/3.10.0/jstreegrid.js"></script>
+  <!-- jQuery modal -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+
+  <script type="text/javascript">
+  window.onerror = function(msg, url, linenumber) {
+    const text='Error message: '+msg+'\nURL: '+url+'\nLine Number: '+linenumber;
+    console.log(text);
+    alert(text);
+    return true;
+  }
+  </script>
+</head>
+
+<body>
+<h1 id="title">Estimations</h1>
+<div>
+  Please load below your files and click the Render button to see the tree of efforts and estimations. For more information please <a href="README.md">go here</a>
+</div>
+
+
+<div id="pSearchTree" style="display:none;">
+  <label>Seach in the tree : </label>
+  <input id="bTreeSearch" type="text" value="" class="input search"/>
+</div>
+<div id="tree_tasks" style="zoom:1.0">
+</div>
+
+<button id="bRender">Render</button>&nbsp;
+<button id="bExportCSV">Export CSV</button>&nbsp;
+<button id="bExportJSON">Export JSON</button>&nbsp;
+
+<div id="select_activity" class="modal">
+  <b>Chose a Task to add</b>
+  <br/>
+  <select>
+  </select>
+  <br/>
+  <button>Accept</button>
+</div>
+
+<div id="edit_node" class="modal">
+  <div class="description">
+    <label>Description : </label>
+    <input name="description" type="text"></input>
+  </div>
+  <div class="weight">
+    <label>Weight : </label>
+    <input name="weight" type="text" value="1.0"></input>
+  </div>
+  <div class="duration">
+    <label>Duration : </label>
+    <input name="duration" type="text" value="1.0"></input>
+  </div>
+  <button>Update</button>
+</div>
+
+<div id="new_task" class="modal">
+  <div>
+    <label>Name : </label>
+    <input name="name" type="text"></input>
+  </div>
+  <button>Create</button>
+</div>
+
+<div>
+  Load here your files. Some files have been uploaded with some sample files (config, roles, types) but you can upload your own files and overwrite them.
+</div>
+
+<div id="tabs">
+  <ul>
+    <li><a href="#load_estimations">Estimations</a></li>
+      <li><a href="#load_config">Config</a></li>
+      <li><a href="#load_roles">Roles</a></li>
+      <li><a href="#load_types">Types</a></li>
+    </ul>
+    <div id="load_estimations">
+      <input type="file" multiple/>
+      <br/>
+      <a href="demo/data/project03.json">Example</a>
+      <div class="content"></div>
+    </div>
+    <div id="load_config">
+      <input type="file"/>
+      <br/>
+      <a href="demo/data/config.json">Example</a>
+      <div class="content"></div>
+    </div>
+    <div id="load_roles">
+      <input type="file"/>
+      <br/>
+      <a href="demo/data/roles.json">Example</a>
+      <div class="content"></div>
+    </div>
+    <div id="load_types">
+      <input type="file"/>
+      <br/>
+      <a href="demo/data/typeActivities.json">Example</a>
+      <div class="content"></div>
+    </div>
+  </div>
+</body>
+<script>
+
+// ------------------------------------------------------------------- Functions
+/**
+ * Save JSON in local storage and put the JSON in a container so we can take a look (debug).
+ * Also perform some generic actions as:
+ * - Remove comments
+ * - Load _includes
+ */
+function saveData(container, name, new_data, callback) {
+  console.log("saveData(name:" + name + ")");
+  removeCommentsFromJSON(new_data);
+  
+  var data=lsGetJSON(name);
+  if ( !data ) {
+    console.log("New data ....");
+    data={};
+  } else {
+    console.log("Updating ....");
+  }
+  extendsJSON(data, new_data);
+
+  // Ok for the especial case of estimations we have to keep the original 
+  // so we can later can compute the root node
+  /*
+  if ( name==="estimations" ) {
+    lsSetJSON(name + "_original", data);
+  }
+  */
+  loadExternal(data, upd_data => {
+    container.querySelector(".content").innerHTML='';
+    container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
+    lsSetJSON(name, data);
+    if ( callback ) {
+      callback(upd_data);
+    }
+  }, getURLParam("baseDataURL"));
+}
+
+
+/**
+ * Set the listener that will allow to upload JSON with data
+ */
+function setListenerUploadJSON(container, name, url, url_prefix) {
+  container.querySelector("input").addEventListener('change', function(e) {
+    loadLocalFiles(
+      e.target.files, 
+      // Secuencial process of the files uploaded. In some cases we allow upload
+      // several files. like with the estimations
+      (file, txt_result) => {
+        saveData(container, name, JSON.parse(txt_result));
+      },
+      tot => {
+        console.log("Processed : " + tot + " files");
+      }
+    );
+  });
+}
+
+
+/**
+ * Generates the tree
+ */ 
+function generatesTree() {
+  // TODO : redo this show part, ugly
+  //        It should managed by treeTask
+  $("#pSearchTree").show();
+
+  // TODO : not like this code for getting the root node. The fact
+  //        normalize needs all the data to work ...
+
+  const config=lsGetJSON('config');
+  const roles=lsGetJSON('roles');
+  const typeActivities=lsGetJSON('types');
+  var   estimations=lsGetJSON('estimations');
+  if ( config && roles && typeActivities && estimations ) {
+    estimations=getFlatDataNormalized(
+      estimations,
+      roles,
+      typeActivities, 
+      config
+    );
+
+    // Ok we need to do a "trick" to get the root node
+    // const estimations_original=lsGetJSON("estimations_original");
+    // const my_roots=getRootNodes(estimations).filter( k=> estimations_original.hasOwnProperty(k));
+    // const root = my_roots.length==1 ? my_roots[0] : null;
+    const root=getURLParam("root", null);
+
+
+    // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
+    $("#tree_tasks").empty();
+    $("#tree_tasks").append("<div class='content'></div>");
+    createJSTree(
+      $('#tree_tasks .content'), 
+      $('#bTreeSearch'), 
+      estimations, 
+      roles, 
+      typeActivities, 
+      config, 
+      root, 
+      $('#select_activity'),
+      $('#edit_node'),
+      $('#new_task')
+    );
+  }
+}
+
+
+// ------------------------------------------------------------------- Listeners
+
+document.getElementById('bRender').addEventListener('click', function(){
+  generatesTree();
+});
+
+// ------------------------------------------------------------------------ Main
+collapsable(document);
+
+$( function() {
+  $( "#tabs" ).tabs();
+});
+
+// Cleanup
+lsDelJSON('config');
+lsDelJSON('roles');
+lsDelJSON('types');
+lsDelJSON('estimations');
+
+// Get the data in order. Maybe some data is not specified
+var container=null;
+fetchJSONFile(getURLParam("config"), function(config) {
+  container=document.getElementById('load_config');
+  setListenerUploadJSON(container, 'config');
+  if ( !config ) config = {};
+  saveData(container, 'config', config);
+
+  fetchJSONFile(getURLParam("roles"), function(roles) {
+    container=document.getElementById('load_roles');
+    setListenerUploadJSON(container, 'roles');
+    if ( !roles ) roles = {};
+    saveData(container, 'roles', roles);
+
+    fetchJSONFile(getURLParam("types"), function(typeActivities) {
+      container=document.getElementById('load_types');
+      setListenerUploadJSON(container, 'types');
+      if ( !typeActivities ) typeActivities = {};
+      saveData(container, 'types', typeActivities);
+
+      fetchJSONFile(getURLParam("estimations"), function(estimations) {
+        container=document.getElementById('load_estimations');
+        setListenerUploadJSON(container, 'estimations');
+        // In estimations because it can have includes, we need a callback to 
+        // render when all the data has been loaded
+        if ( estimations ) {
+          saveData(container, 'estimations', estimations, function() {
+            generatesTree();
+          });
+        }
+      });
+    });
+  });
+});
+
+// alert(daysNumber2Human(daysHuman2Number(10.3)));
+
+</script>
+</html>

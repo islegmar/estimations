@@ -1,0 +1,14 @@
+{
+  "Project" : { "tasks" : ["Definition", { "name" : "Build", "weight" : 0.5} , "Acceptance"], "assumptions" : [ "One", "Two"] },
+  "Definition" : { "type" : "std_squad", "size" : "S" },
+  "Build" : { "tasks" : ["MOD#1", "MOD#2", "MOD#3", "MOD#4", { "name" : "MOD#5", "weight" : 0.2}] },
+  "MOD#1" : { "type" : "std_squad", "size" : "S" },
+  "MOD#2" : { "BE" : 10, "FE" :10 },
+  "MOD#3" : { "tasks" : ["act1", "act2"] },
+  "MOD#4" : { "tasks" : ["act1"] },
+  "act1" : { "BE" : 4},
+  "act2" : { "IT" : 666},
+  "MOD#5" : { "type" : "development", "duration" : 10, "BE" : 2, "FE" : 0.5},
+  "Acceptance" : { "description" : "Customer acceptance", "tasks" : [ {"name": "UAT", "description" : "First UAT"}, {"name" : "UAT", "weight" : 0.5, "description" : "Second UAT"}]},
+  "UAT" : { "duration" : 5, "PM" : 1, "QA" : 1.5, "BE": 0.5, "FE" : 0.5}
+}

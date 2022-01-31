@@ -1,0 +1,8 @@
+{
+  "_includes" : [ "_pmo.json", "_development.json" ],
+  "My Project" : { 
+    "tasks" : [ 
+      "STD Module#1"
+    ]
+  }
+}

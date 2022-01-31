@@ -1,0 +1,97 @@
+#toggles span {
+  font-weight: bold;
+}
+
+.clicable {
+   cursor: pointer;
+}
+
+.sortASC::after {
+  content: " \25B2";
+}
+
+th.sortDESC::after {
+  content: " \25BC";
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
+.ERROR   { background-color:red !important; }
+.WARNING { background-color:yellow !important; }
+.OK      { background-color:white !important; }
+.BAD     { background-color:red !important; }
+.CHECK   { background-color:yellow !important; }
+.GOOD    { background-color:white !important; }
+
+table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+}
+
+table th,
+table td {
+    padding: 12px 15px;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+table tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+
+table tbody tr.active-row {
+    font-weight: bold;
+    color: #009879;
+}
+ body{
+    background-color: rgb(247, 247, 247);
+    color: rgb(23, 23, 23);
+    margin: 0px;
+    padding: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+#toggles {
+  display:table;
+}
+#toggles > * {
+  display:table-row;
+}
+#toggles > * > *{
+  display:table-cell;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+#filterHeader {
+  display:table-row;
+}
+#filterHeader > *{
+  display:table-cell;
+}
+
+/*
+#toggles span{
+    display:inline-block;
+    width: 150px;
+    overflow:hidden;
+}
+*/

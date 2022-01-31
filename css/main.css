@@ -1,0 +1,152 @@
+.clicable {
+   cursor: pointer;
+}
+
+/**
+ * Collapsable
+ */
+.collapsable.collapsed .content {
+  display:none;
+}
+
+.collapsable .header::after {
+  content: " \2212";
+  cursor: pointer;
+}
+
+.collapsable.collapsed .header::after {
+  content: " \002B";
+  cursor: pointer;
+}
+
+/**
+ * Table
+ */
+.legend {
+  display:inline-block;
+  width:5px;
+  height:5px;
+  padding:2px;
+  border:1px solid black;
+}
+
+/*
+.effort {
+  background-color:inherit !important;
+}
+.perc {
+  background-color:green !important;
+}
+.duration {
+  background-color:yellow !important;
+*/}
+
+#toggles span {
+  font-weight: bold;
+}
+
+.sortASC::after {
+  content: " \25B2";
+}
+
+th.sortDESC::after {
+  content: " \25BC";
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+}
+
+table th,
+table td {
+    padding: 12px 15px;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+table tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+
+table tbody tr.active-row {
+    font-weight: bold;
+    color: #009879;
+}
+ body{
+    background-color: rgb(247, 247, 247);
+    color: rgb(23, 23, 23);
+    margin: 0px;
+    padding: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+#toggles {
+  display:table;
+}
+#toggles > * {
+  display:table-row;
+}
+#toggles > * > *{
+  display:table-cell;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+#filterHeader {
+  display:table-row;
+}
+#filterHeader > *{
+  display:table-cell;
+}
+
+/*
+#toggles span{
+    display:inline-block;
+    width: 150px;
+    overflow:hidden;
+}
+*/
+/*
+.jstree-grid-cell{
+  border:1px dotted black;
+}
+.jstree-anchor {
+  margin-top:1px;
+  margin-bottom:1px;
+}
+*/
+.number {
+  text-align: right !important;
+  overflow:visible !important;
+  margin:0px !important;
+  padding:0px !important;
+}
+.number span {
+  padding-right:5px;
+  padding-left:5px;
+}
+
+#edit_node:not(.composed) div.duration {
+  display:none;
+}

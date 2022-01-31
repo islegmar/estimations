@@ -1,0 +1,11 @@
+
+{
+  "default_squad" : "super_squad",
+  "sizes" : {
+    "_comment" : "This is the relation with the size and the number of days",
+    "S" : { "duration" : 3 },
+    "M" : { "duration" : 5 },
+    "L" : { "duration" : 7 },
+    "XL" : { "duration" : 273 }
+  }
+}

@@ -1,0 +1,11 @@
+
+{
+  "Super Development" : { 
+    "tasks" : [ 
+      "Module#1",
+      "Module#2"
+    ]
+  },
+  "Module#1" : { "size" : "S" },
+  "Module#2" : { "size" : "S" }
+}
