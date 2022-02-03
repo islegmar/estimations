@@ -3,13 +3,13 @@
 /**
  * Create the object jstree
  */
-function createJSTree($container, $search, d_flat, roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task) {
+function createJSTree($container_parent, $container, $search, d_flat, roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
   const d_tree = getJsTreeData(d_flat, root_node);
 
   // ---- Columns to be shown for every row
   var columns=[
-    {width: 200, header: "Name"},
-    {header: "Description", value: "description"},
+    {width: 200, header: "Name" },
+    {header: "Description", value: "description", "columnClass" : "Description"},
     {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
     {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
     {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
@@ -28,6 +28,42 @@ function createJSTree($container, $search, d_flat, roles, typeAcctivitites, conf
   // TODO : not possible to show the assumptions as a list
   columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
   columns.push({header: "Notes", "columnClass" : "notes", value : "notes"});
+
+  if ( $p_col_selector ) {
+    var eGroup=$p_col_selector.find(".content")[0];
+
+    columns.forEach(item => {
+      if ( item.hasOwnProperty("columnClass") ) {
+        var eLabel=document.createElement('label');
+        eLabel.innerHTML=item.header;
+        eGroup.appendChild(eLabel);
+    
+        var eCb=document.createElement('input');
+        eCb.type='checkbox';
+        eCb.checked = true;
+        // TODO : not sure is the better way to pass argument. Use of bind with EventListener
+        eCb.custom_class = item.columnClass;
+        eCb.custom_container = $container_parent;
+        eLabel.prepend(eCb);  // Use prepend so first the checkbox and then the label
+
+        eCb.addEventListener('change', function(event) {
+          var ele=event.currentTarget;
+          console.log("class : " +  ele.custom_class);
+          console.log("div : " +  ele.custom_container[0].className);
+          console.log("ele : " + ele.custom_container.find("." + ele.custom_class)[0]);
+          // TODO : remove all jquery
+          if ( ele.checked ) {
+            ele.custom_container.find("." + ele.custom_class).show();
+            ele.custom_container.find("." + ele.custom_class).children().show();
+          } else {
+            ele.custom_container.find("." + ele.custom_class).hide();
+            ele.custom_container.find("." + ele.custom_class).children().hide();
+          }
+          console.log(event.currentTarget.custom_container);
+        });
+      }
+    });
+  }
 
   // ---- Build jstree
   $container.jstree({

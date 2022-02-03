@@ -67,6 +67,11 @@
   <label>Seach in the tree : </label>
   <input id="bTreeSearch" type="text" value="" class="input search"/>
 </div>
+<div id="col_selector" class="collapsable collapsedXXX">
+  <p class="header">Columns</p>
+  <div class="content">
+  </div>
+</div>
 <div id="tree_tasks" style="zoom:1.0">
 </div>
 
@@ -238,6 +243,7 @@ function generatesTree() {
     $("#tree_tasks").empty();
     $("#tree_tasks").append("<div class='content'></div>");
     createJSTree(
+      $('#tree_tasks'), 
       $('#tree_tasks .content'), 
       $('#bTreeSearch'), 
       estimations, 
@@ -247,7 +253,8 @@ function generatesTree() {
       root, 
       $('#select_activity'),
       $('#edit_node'),
-      $('#new_task')
+      $('#new_task'),
+      $('#col_selector')
     );
   }
 }
