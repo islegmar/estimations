@@ -10,17 +10,24 @@ function createJSTree($container, $search, d_flat, roles, typeAcctivitites, conf
   var columns=[
     {width: 200, header: "Name"},
     {header: "Description", value: "description"},
-    {header: "Cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
-    {header: "O. Weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
-    {header: "Weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
+    {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
+    {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
+    {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
 
   for (const rol_name in roles){
-    columns.push({header: rol_name, "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data.md, rol_name); }});
+    columns.push({
+      header: rol_name, 
+      "columnClass" : "rol_" + rol_name , 
+      "wideCellClass" : "number", 
+      value : function(node){ 
+        return formatDataValue(node.data.md, rol_name); 
+      }
+    });
   }
   // TODO : not possible to show the assumptions as a list
-  columns.push({header: "Assumptions", value : "assumptions"});
-  columns.push({header: "Notes", value : "notes"});
+  columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
+  columns.push({header: "Notes", "columnClass" : "notes", value : "notes"});
 
   // ---- Build jstree
   $container.jstree({

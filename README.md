@@ -191,6 +191,10 @@ Once we have this configuration in place define the effort can be so simple as
 
 Here you can see [the final file](demo/data/projects/project05.json) and the [demo](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project05.json&config=demo/data/config/config.default-squad.json&baseDataURL=demo/data/includes/)
 
+#### Formulas
+
+Here you can see [the final file](demo/data/projects/project06.formulas.json) and the [demo](index.html?roles=demo/data/config/roles.formulas.json&types=demo/data/config/typeActivities.formulas.json&estimations=demo/data/projects/project06.formulas.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
+
 ## Using the sandbox
 
 TBD

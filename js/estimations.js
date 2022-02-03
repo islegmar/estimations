@@ -175,6 +175,20 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
             my_notes.push(type_cfg.roles[rol] + "x" + rol);
           }
           notes += my_notes.join(" + ");
+        } else if ( calculation==="formula" ) {
+          type_cfg.derived.forEach(entry => {
+            for(const new_rol in entry) {
+              var expr=entry[new_rol];
+              console.log("[formula] " + new_rol + " : (1) " + expr + " (item:" + JSON.stringify(item) + ")");
+              notes += " => " + new_rol + " = " + expr;
+              for (const existing_rol in effort) {
+                expr=expr.replaceAll("{" + existing_rol + "}", effort[existing_rol]);
+              }
+              console.log("[formula] " + new_rol + " : (2) " + expr + " (item:" + JSON.stringify(item) + ")");
+              // notes += "=" + expr;
+              effort[new_rol] = eval(expr);
+            }
+          });
         } else {
           alert("Unknown task type '" + type_activity + "' in '" + JSON.stringify(effort) + "'");
         }
