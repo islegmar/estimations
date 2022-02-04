@@ -450,9 +450,3 @@ downloadCSV(
   ["name", "age"]
 );
 */
-
-function log(msg, level) {
-  //var level = !level ? LOG_LEVEL : level;
-  // onsole.log("LOG_LEVEL : " + level + ", msg: " + msg);
-  console.log(msg);
-}
