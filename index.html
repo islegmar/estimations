@@ -21,6 +21,7 @@
   <!-- Internal -->
   <link rel="stylesheet" type="text/css" href="css/main.css" media="all">
   <link rel="stylesheet" type="text/css" href="css/my.css" media="all">
+  <script src="js/log.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/estimations.js"></script>
   <script src="js/treeTasks.js"></script>
@@ -49,7 +50,7 @@
   <script type="text/javascript">
   window.onerror = function(msg, url, linenumber) {
     const text='Error message: '+msg+'\nURL: '+url+'\nLine Number: '+linenumber;
-    console.log(text);
+    log_error(text);
     alert(text);
     return true;
   }
@@ -159,15 +160,15 @@
  * - Load _includes
  */
 function saveData(container, name, new_data, callback) {
-  console.log("saveData(name:" + name + ")");
+  log_low_debug("saveData(name:" + name + ")");
   removeCommentsFromJSON(new_data);
   
   var data=lsGetJSON(name);
   if ( !data ) {
-    console.log("New data ....");
+    log_low_debug("New data ....");
     data={};
   } else {
-    console.log("Updating ....");
+    log_low_debug("Updating ....");
   }
   extendsJSON(data, new_data);
 
@@ -202,7 +203,7 @@ function setListenerUploadJSON(container, name, url, url_prefix) {
         saveData(container, name, JSON.parse(txt_result));
       },
       tot => {
-        console.log("Processed : " + tot + " files");
+        log_low_debug("Processed : " + tot + " files");
       }
     );
   });
