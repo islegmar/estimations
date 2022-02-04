@@ -179,12 +179,13 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
           type_cfg.derived.forEach(entry => {
             for(const new_rol in entry) {
               var expr=entry[new_rol];
-              console.log("[formula] " + new_rol + " : (1) " + expr + " (item:" + JSON.stringify(item) + ")");
+              log("[formula] " + new_rol + " : (1) " + expr + " (item:" + JSON.stringify(item) + ")");
               notes += " => " + new_rol + " = " + expr;
               for (const existing_rol in effort) {
                 expr=expr.replaceAll("{" + existing_rol + "}", effort[existing_rol]);
+                // expr=expr.replaceAll("{" + existing_rol + "}", effort[existing_rol] * roles[existing_rol].cost );
               }
-              console.log("[formula] " + new_rol + " : (2) " + expr + " (item:" + JSON.stringify(item) + ")");
+              log("[formula] " + new_rol + " : (2) " + expr + " (item:" + JSON.stringify(item) + ")");
               // notes += "=" + expr;
               effort[new_rol] = eval(expr);
             }
