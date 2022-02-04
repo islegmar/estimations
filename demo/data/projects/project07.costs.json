@@ -1,0 +1,8 @@
+{
+  "My Project" : { 
+    "tasks" : [ 
+      "Implementation"
+    ]
+  },
+  "Implementation" : { "type" : "mgmnt", "BE" : 2, "FE" : 3, "QA" : 10 }
+}
