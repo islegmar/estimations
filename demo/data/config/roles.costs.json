@@ -1,0 +1,14 @@
+{
+  "PO"  : { "cost" : 60.0 },
+  "A"   : { "cost" : 40.0 },
+  "BE"  : { "cost" : 100.0 },
+  "FE"  : { "cost" : 50.0 },
+  "QA"  : { "cost" : 10.0 },
+  "_comment" : "==================== EFFORTS",
+  "_DEV"     : { "formula" : "{BE}+{FE}+{QA}" },
+  "_MGM"     : { "formula" : "{PO}+{A}"  },
+  "_comment" : "==================== COSTS",
+  "BECost"   : { "isCost" : true, "base" : "BE" },
+  "_DEVCost" : { "isCost" : true, "base" : "_DEV" },
+  "_MGMCost" : { "isCost" : true, "base" : "_MGM" }
+}

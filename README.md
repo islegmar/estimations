@@ -195,6 +195,10 @@ Here you can see [the final file](demo/data/projects/project05.json) and the [de
 
 Here you can see [the final file](demo/data/projects/project06.formulas.json) and the [demo](index.html?roles=demo/data/config/roles.formulas.json&types=demo/data/config/typeActivities.formulas.json&estimations=demo/data/projects/project06.formulas.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
 
+#### Calculated roles
+
+Here you can see [the final file](demo/data/projects/project07.costs.json) and the [demo](index.html?roles=demo/data/config/roles.costs.json&types=demo/data/config/typeActivities.costs.json&estimations=demo/data/projects/project07.costs.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
+
 ## Using the sandbox
 
 TBD

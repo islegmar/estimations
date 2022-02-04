@@ -311,13 +311,53 @@ function sumEffort(eff1, eff2, weight) {
   return ret;
 }
 
+/**
+ * Given a map of roles and MD (mds) and the costs for every rol (roles) compute
+ * the total cost.
+ */
 function getCost(mds, roles) {
   var cost=0.0;
   for(var rol in mds ) {
-    if ( roles.hasOwnProperty(rol) ) {
+    // Some roles do NOT have attr. "cost" because they are calculated fields
+    if ( roles.hasOwnProperty(rol) && roles[rol].hasOwnProperty("cost") ) {
       cost += mds[rol] * 8.0 * roles[rol]["cost"];
     }
   }
 
   return cost;
+}
+
+// TODO : in those two methods we can have some problems of "order evaluation" if
+// we allow some variables are formulas that depends on other variables that depend ....
+// Maybe we have to change to a more complex and recursive strategy
+// So actually there is LIMITATION : formula can ONLY contain "real" roles NOT calculated fields
+// If we want to avoid this "limitation" (please KISS) for the formula evaluation instead the simple
+// strategy of replaceAll() + eval() we have to implement a full expression analyzer ...
+
+/**
+ * For example if:
+ * - expr   : 0.5*(BE+FE)
+ * - effort : { "BE" : 3, "FE" : 1 }
+ * then the value is
+ *   0.5*(3+1) = 0.5*4 = 2
+ */
+function computeExpressionEffort(expr, effort, roles) {
+  if ( !effort ) return "";
+
+  for (const rol in roles ) {
+    expr=expr.replaceAll("{" + rol + "}", effort.hasOwnProperty(rol) ? effort[rol] : "0");
+  }
+  return eval(expr);
+}
+
+/**
+ * Same as above but using costs
+ */
+function computeExpressionCost(expr, effort, roles) {
+  if ( !effort ) return "";
+
+  for (const rol in roles ) {
+    expr=expr.replaceAll("{" + rol + "}", effort.hasOwnProperty(rol) && roles[rol].hasOwnProperty("cost") ? effort[rol] * 8.0 * roles[rol]["cost"] : "0");
+  }
+  return eval(expr);
 }

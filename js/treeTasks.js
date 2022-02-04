@@ -21,7 +21,30 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       "columnClass" : "rol_" + rol_name , 
       "wideCellClass" : "number", 
       value : function(node){ 
-        return formatDataValue(node.data.md, rol_name); 
+        const rol_cfg=roles[rol_name];
+
+        // Sepecial cases:
+        // - Column not represent a Rol but a Cost 
+        // - Column is a calculated field
+        if ( !rol_cfg.hasOwnProperty("cost") ) {
+          // Column is an calculated effort 
+          if ( rol_cfg.hasOwnProperty("formula") ) {
+            return formatString(computeExpressionEffort(rol_cfg.formula, node.data.md, roles));
+          // Column is a calculated cost
+          } else if ( rol_cfg.hasOwnProperty("isCost") && rol_cfg["isCost"] && rol_cfg.hasOwnProperty("base") ) {
+            const base=rol_cfg["base"];
+            // Base is a rol
+            if ( roles[base].hasOwnProperty("cost") ) {
+              return formatString(computeExpressionCost("{" + base + "}", node.data.md, roles), formatterCost);
+            // Base is a computed field
+            } else if ( roles[base].hasOwnProperty("formula") ) {
+              return formatString(computeExpressionCost(roles[base].formula, node.data.md, roles), formatterCost);
+            }
+          }
+        // Column is simple a cost with its rol
+        } else  {
+          return formatDataValue(node.data.md, rol_name); 
+        }
       }
     });
   }
