@@ -332,6 +332,8 @@ TBD
 - DONE : Possibility of read several estimation files that are acumulative
 - DONE : Export in CSV
 - DONE : Export in JSON
+- DONE : Support for formulas
+- In the formulas we can calculate based on MD but also in Costs
 - In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department
 - When exporting in CSV onfigure in config the fields to be exported and their order
-- Import the exported JSON (that IS not the same as the original flat_data)
+- Import the exported JSON (that is NOT the same as the original flat_data)

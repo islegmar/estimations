@@ -29,7 +29,7 @@ function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_dupl
   if ( url_prefix ) {
     url = url_prefix + url;
   }
-  console.log("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
+  log("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
   fetchJSONFile(url, new_data => {
     for(const k in new_data ) {
       if ( data.hasOwnProperty(k) && error_if_duplicate ) {
@@ -37,7 +37,7 @@ function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_dupl
       }
 
       if ( !data.hasOwnProperty(k) || update_if_duplicate ) {
-        console.log("Add key " + k + " with value " + new_data[k]);
+        log("Add key " + k + " with value " + new_data[k]);
         data[k] = new_data[k];
       }
     }
@@ -345,7 +345,7 @@ function extendsJSON(old_json, new_json, allow_overwrite=true) {
  * TODO: pass as optional an argument with a map unit => number of days
  */
 function daysHuman2Number(duration) {
-  console.log("duration:" + duration);
+  log("duration:" + duration);
   var value=null;
   if (typeof duration == "string" ) {
     const tags=duration.match(/(\d+\.?\d*)([^\d])/ );
@@ -362,13 +362,13 @@ function daysHuman2Number(duration) {
       } else {
         throw new Error("Unknown unit '" + unit + "' in duration '" + duration + "'");
       }
-      console.log("duration : " + duration + " => value:" + value + ", unit: " + unit);
+      log("duration : " + duration + " => value:" + value + ", unit: " + unit);
     } else {
-      console.log("No units : " + parseFloat(duration));
+      log("No units : " + parseFloat(duration));
       value=parseFloat(duration);
     }
   } else {
-    console.log("Number : " + parseFloat(duration));
+    log("Number : " + parseFloat(duration));
     value=parseFloat(duration);
   }
 
@@ -450,3 +450,9 @@ downloadCSV(
   ["name", "age"]
 );
 */
+
+function log(msg, level) {
+  //var level = !level ? LOG_LEVEL : level;
+  // onsole.log("LOG_LEVEL : " + level + ", msg: " + msg);
+  console.log(msg);
+}

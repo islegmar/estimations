@@ -31,6 +31,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
 
   if ( $p_col_selector ) {
     var eGroup=$p_col_selector.find(".content")[0];
+    removeChildren(eGroup);
 
     columns.forEach(item => {
       if ( item.hasOwnProperty("columnClass") ) {
@@ -39,18 +40,16 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
         eGroup.appendChild(eLabel);
     
         var eCb=document.createElement('input');
+        eCb.name=item.header;
         eCb.type='checkbox';
         eCb.checked = true;
-        // TODO : not sure is the better way to pass argument. Use of bind with EventListener
+        // TODO : not sure is the better way to pass argument. Use of bind with EventListener?
         eCb.custom_class = item.columnClass;
         eCb.custom_container = $container_parent;
         eLabel.prepend(eCb);  // Use prepend so first the checkbox and then the label
 
         eCb.addEventListener('change', function(event) {
           var ele=event.currentTarget;
-          console.log("class : " +  ele.custom_class);
-          console.log("div : " +  ele.custom_container[0].className);
-          console.log("ele : " + ele.custom_container.find("." + ele.custom_class)[0]);
           // TODO : remove all jquery
           if ( ele.checked ) {
             ele.custom_container.find("." + ele.custom_class).show();
@@ -59,7 +58,6 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
             ele.custom_container.find("." + ele.custom_class).hide();
             ele.custom_container.find("." + ele.custom_class).children().hide();
           }
-          console.log(event.currentTarget.custom_container);
         });
       }
     });
@@ -76,10 +74,9 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       check_callback : function (operation, node, parent, position, more) {
         // If the parent is originally a node with direct estimations, it can have children so we have to cancel the movement
         if (operation === "move_node") {  
-          // console.log("check_callback(operation:" + operation + ", node:" + node.text + ",parent:" + parent.text + ",position:" + position + ", more:" + more);
-          // console.log("check_callback(parent.data:" + parent.data + ")");
+          // log("check_callback(operation:" + operation + ", node:" + node.text + ",parent:" + parent.text + ",position:" + position + ", more:" + more);
+          // log("check_callback(parent.data:" + parent.data + ")");
           if ( parent && parent.data ) {
-            console.log("check_callback(parent.data:" + JSON.stringify(parent.data) + ")");
             if ( !parent.data.isComposed ) {
               return false;
             }
@@ -134,23 +131,30 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
 
   /*
   $(document).on('dnd_stop.vakata dnd_move.vakata drop', function(e, data) {
-    console.log(">>>> DROP");
+    log(">>>> DROP");
   });
   */
   $(document).on('dnd_stop.vakata', function(e, data) {
-    console.log(">>>> REFRESH");
     const jstree=$container.jstree(true);
     updateTreeData(jstree, d_flat, roles);
     jstree.redraw(true);
   });
   
+  $container.on("loaded.jstree", function (e, data) {
+    if ( $p_col_selector ) {
+      for (const rol in roles) {
+        if ( roles[rol].hasOwnProperty("hidden") && roles[rol]["hidden"] ) {
+          $p_col_selector.find("input[name='" + rol + "']").click();
+        }
+      }
+    }
+  });
   // Recalculate the efforts
   // - Init, after the tree is rendered
   // - When some is checked / unchecked
   // - When a node is moved
   // To cancel the drop must be dine before, this event is triggered after is done
   $container.on("custom.refresh loaded.jstree check_node.jstree uncheck_node.jstree move_node.jstree", function (e, data) {
-    console.log(">>>> REFRESH");
     const jstree=$container.jstree(true);
     updateTreeData(jstree, d_flat, roles);
     jstree.redraw(true);
@@ -190,7 +194,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
     // TODO : the node affected should be pass to the popup BUT not know ho to 
     //        to do it, so we save the data in $container (ugly!)
     $container.on("custom.select_node", function(e, $node, action) {
-      console.log("Action " + action + " on node " + JSON.stringify($node));
+      log("Action " + action + " on node " + JSON.stringify($node));
       $container.data("sel_node", $node);
       if ( action==="addTask" ) {
         // Fill the select with all the possible activities
@@ -222,7 +226,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       const $node = $container.data("sel_node");
 
       const activity=$p_select_activity.find("select").children("option:selected").val();
-      console.log("Activity : " + activity);
+      log("Activity : " + activity);
 
       const child = getTreeNodeData(activity, d_flat);
       child.id=true;
@@ -378,12 +382,12 @@ function getNodeMDAndUpdate(jstree, node, weight, roles) {
   const original_node_config=node.data._original_node_config;
   var my_effort={};
 
-  console.log("node.text : " + node.text);
+  log("node.text : " + node.text);
   const children = node.children;
 
   // COMPOSED nore
   if ( children.length>0 ) {
-    console.log("With nodes");
+    log("With nodes");
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
@@ -399,14 +403,14 @@ function getNodeMDAndUpdate(jstree, node, weight, roles) {
     });
   // SIMPLE node
   } else {
-    console.log("Pure estimation");
+    log("Pure estimation");
     if ( node.state.checked ) {
       const original_md=original_node_config.effort;
       for (const k in original_md ) {
         my_effort[k] = original_md[k] * weight;
       }
     }
-    console.log("... " + JSON.stringify(my_effort));
+    log("... " + JSON.stringify(my_effort));
   }
 
   // -------------------------------------
@@ -472,8 +476,8 @@ function export2CSVTree(jstree, roles) {
     export2CSVNode(jstree, jstree.get_node(id), list);
   });
 
-  console.log("max_level : " + max_level);
-  console.log(JSON.stringify(list, null, 2));
+  log("max_level : " + max_level);
+  log(JSON.stringify(list, null, 2));
 
   // Headers in order
   var headers=[];
