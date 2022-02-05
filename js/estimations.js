@@ -118,13 +118,23 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
     // 2> Initial calculation of the MD
     // duration : the values is the factor
     if ( duration ) {
-      notes += duration + " days of ";
-      var my_notes=[];
-      for ( const rol in effort) {
-        my_notes.push(effort[rol] + "x" + rol);
-        effort[rol] *= duration;
+      if ( duration === "inherit" ) {
+        log_is_low_debug() && log_low_debug("Inherit duration for " + JSON.stringify(item));
+        var my_notes=[];
+        for(const rol in effort ) {
+          my_notes.push(effort[rol] + "x" + rol);
+        }
+        notes += my_notes.join(" + ");
+        // notes += "[duration:inherit]";
+      } else {
+        notes += duration + " days of ";
+        var my_notes=[];
+        for ( const rol in effort) {
+          my_notes.push(effort[rol] + "x" + rol);
+          effort[rol] *= duration;
+        }
+        notes += my_notes.join(" + ");
       }
-      notes += my_notes.join(" + ");
     // Working size sizes, instead of "time!
     } else if ( size ) {
       // Usually in type we have the name of the squad EXCEPT
@@ -148,6 +158,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
       if ( type_activities.hasOwnProperty(type_activity) ) {
         const type_cfg=type_activities[type_activity];
         const calculation=type_cfg["calculation"];
+        // TODO: remove it. This can be replaced by the most generic "formula"
         if ( calculation==="percentage" ) {
           notes += " + ";
           // Get base value...
@@ -176,16 +187,20 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
           }
           notes += my_notes.join(" + ");
         } else if ( calculation==="formula" ) {
+          // For the compuration of the derived data we take as source data the effort + duration
+          var src_data=cloneJSON(effort);
+          src_data["duration"] = !duration || duration==="inherit" ? 1.0 : duration;
+          log_is_low_debug() && log_low_debug("src_data : " + JSON.stringify(src_data) + ", item:" + JSON.stringify(item));
           type_cfg.derived.forEach(entry => {
+            // entry : "rol" : "<expression to compute it>"
             for(const new_rol in entry) {
               var expr=entry[new_rol];
-              log("[formula] " + new_rol + " : (1) " + expr + " (item:" + JSON.stringify(item) + ")");
+              log_is_low_debug() && log_low_debug("[formula] " + new_rol + " : (1) " + expr);
               notes += " => " + new_rol + " = " + expr;
-              for (const existing_rol in effort) {
-                expr=expr.replaceAll("{" + existing_rol + "}", effort[existing_rol]);
-                // expr=expr.replaceAll("{" + existing_rol + "}", effort[existing_rol] * roles[existing_rol].cost );
+              for (const variable in src_data) {
+                expr=expr.replaceAll("{" + variable + "}", src_data[variable]);
               }
-              log("[formula] " + new_rol + " : (2) " + expr + " (item:" + JSON.stringify(item) + ")");
+              log_is_low_debug() && log_low_debug("[formula] " + new_rol + " : (2) " + expr);
               // notes += "=" + expr;
               effort[new_rol] = eval(expr);
             }
@@ -198,7 +213,11 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
         throw new Error("Unknown type of effort '" + type_activity +"' in " + JSON.stringify(effort));
       }
     } else {
-      notes += " (pure effort)";
+      // var my_notes=[];
+      // for(const rol in effort ) {
+      //   my_notes.push(effort[rol] + "x" + rol);
+      // }
+      // notes += my_notes.join(" + ");
     }
 
     // Ok after all this long piece of code we have
@@ -215,11 +234,13 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
   return data;
 }
 
+// OLD
 /**
  * Compute the md using the effort
  * In this case we will calculate ONLY for the leaf nodes becuase the 
  * acummulated will be computed when showing the tree 
  */
+/*
 function setMD(d_flat_data, roles, type_activities, config) {
   for(const activity in d_flat_data) {
     var data = d_flat_data[activity];
@@ -233,6 +254,7 @@ function setMD(d_flat_data, roles, type_activities, config) {
     }
   }
 }
+*/
 
 
 /**

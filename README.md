@@ -199,6 +199,10 @@ Here you can see [the final file](demo/data/projects/project06.formulas.json) an
 
 Here you can see [the final file](demo/data/projects/project07.costs.json) and the [demo](index.html?roles=demo/data/config/roles.costs.json&types=demo/data/config/typeActivities.costs.json&estimations=demo/data/projects/project07.costs.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
 
+#### Inherit duration
+
+Here you can see [the final file](demo/data/09.inherit-duration/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/09.inherit-duration/roles.json&estimations=demo/data/09.inherit-duration/project.json&types=demo/data/09.inherit-duration/types.json)
+
 ## Using the sandbox
 
 TBD
@@ -337,7 +341,8 @@ TBD
 - DONE : Export in CSV
 - DONE : Export in JSON
 - DONE : Support for formulas
-- In the formulas we can calculate based on MD but also in Costs
-- In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department
+- DONE : In the formulas we can calculate based on MD but also in Costs => not at task level but at column level with the definition of costs' fields in roles.
+- DONE : In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department => Instead this a more generic option has been implemented allowing in roles the calculation of derived fields using formulas which computation can be done in effort or costs.
 - When exporting in CSV onfigure in config the fields to be exported and their order
 - Import the exported JSON (that is NOT the same as the original flat_data)
+- Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)

@@ -349,6 +349,7 @@ function getTreeNodeData(name, d_flat_data) {
       _original_node_config : my_flat_data,
       isComposed : my_flat_data.hasOwnProperty("tasks"),
       my_weight : 1.0,
+      duration: null,
       notes : "", 
       assumptions : my_flat_data.hasOwnProperty("assumptions") ? d_flat_data[name].assumptions.join() : "",
       description : my_flat_data.hasOwnProperty("description") ? d_flat_data[name].description : ""
@@ -359,8 +360,12 @@ function getTreeNodeData(name, d_flat_data) {
     }
   };
 
-  // Add the children
   if ( my_node.data.isComposed ) {
+    if ( my_flat_data.hasOwnProperty("duration") ) {
+      my_node.data.duration=daysHuman2Number(my_flat_data.duration);
+    }
+
+    // Add the children
     my_node['children']=[];
     my_flat_data["tasks"].forEach(child_flat => {
       var child_node=getTreeNodeData(child_flat["name"], d_flat_data);
@@ -375,10 +380,6 @@ function getTreeNodeData(name, d_flat_data) {
 
       my_node.children.push(child_node);
     });
-
-    if ( my_flat_data.hasOwnProperty("duration") ) {
-      my_node.data.duration=daysHuman2Number(my_flat_data.duration);
-    }
   }
 
   return my_node;
@@ -401,39 +402,41 @@ function getTreeNodeData(name, d_flat_data) {
  * - d_flat_data : the data in flat mode 
  * - weight 
  */
-function getNodeMDAndUpdate(jstree, node, weight, roles) {
+function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
+  log_group_start("getNodeMDAndUpdate(" + node.text + ")");
   const original_node_config=node.data._original_node_config;
   var my_effort={};
-
-  log("node.text : " + node.text);
+  
+  if ( log_is_low_debug() ) {
+    log_low_debug("getNodeMDAndUpdate(weight:" + weight +" , parent_duration:" + parent_duration +")");
+    log_low_debug("node.data : " + JSON.stringify(node.data, null, 2));
+    log_low_debug("node.data : " + JSON.stringify(node.data, null, 2));
+  }
   const children = node.children;
 
-  // COMPOSED nore
+  // COMPOSED node
   if ( children.length>0 ) {
-    log("With nodes");
+    log_low_debug("With nodes");
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
       var my_weight=weight * child_node.data.my_weight;
-      var child_effort = getNodeMDAndUpdate(jstree, child_node, my_weight, roles);
-      /* THe child node update it by itself
-      if ( !child_node.data.hasOwnProperty("md") ) {
-        child_node.data.md=child_effort;
-      }
-      */
+      var parent_duration = node.data.duration;
+      var child_effort = getNodeMDAndUpdate(jstree, child_node, my_weight, parent_duration, roles);
 
       my_effort = sumEffort(my_effort, child_effort, 1.0);
     });
   // SIMPLE node
   } else {
-    log("Pure estimation");
+    log_low_debug("Pure estimation");
     if ( node.state.checked ) {
       const original_md=original_node_config.effort;
+      // TODO: we have to clarigy the use of the original_node_config ...
       for (const k in original_md ) {
-        my_effort[k] = original_md[k] * weight;
+        my_effort[k] = original_md[k] * weight * (original_node_config.hasOwnProperty("duration") && original_node_config.duration==="inherit" ? parent_duration : 1.0);
       }
     }
-    log("... " + JSON.stringify(my_effort));
+    log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
   }
 
   // -------------------------------------
@@ -452,7 +455,7 @@ function getNodeMDAndUpdate(jstree, node, weight, roles) {
   if ( weight!=1.0 ) {
     node.data.notes+="[x" + weight + "] ";
   }
-  if ( node.data.isComposed && node.data.hasOwnProperty("duration") ) {
+  if ( node.data.isComposed && node.data.hasOwnProperty("duration") && node.data.duration ) {
     node.data.notes+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
     var my_notes=[];
     for ( const k in node.data.md ) {
@@ -460,9 +463,14 @@ function getNodeMDAndUpdate(jstree, node, weight, roles) {
     }
     node.data.notes+=my_notes.join(" + ");
   }
+  // TODO: the mix with some attributes in data, other in original ....
+  if ( !node.data.isComposed && original_node_config.hasOwnProperty("duration") && original_node_config.duration==="inherit" ) {
+    node.data.notes+="[parent_duration:" + parent_duration + "]";
+  }
   if ( original_node_config.notes ) {
     node.data.notes+=original_node_config.notes;
   }
+  log_group_end();
 
   return my_effort;
 }
@@ -470,7 +478,7 @@ function getNodeMDAndUpdate(jstree, node, weight, roles) {
 function updateTreeData(jstree, d_flat_data, roles) {
   cleanMDTreeNode(jstree);
   jstree.get_node('#').children.forEach(id => {
-    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, roles);
+    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, null, roles);
   });
 }
 

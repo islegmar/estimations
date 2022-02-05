@@ -51,6 +51,14 @@ function log_level_enabled(my_log_level) {
   return log_get_level() <= my_log_level;
 }
 
+function log_group_start(text) {
+  console.group(text);
+}
+
+function log_group_end() {
+  console.groupEnd();
+}
+
 // ---------------------------------------------------------------------- LEVELS
 // LOW DEBUG
 function log_is_low_debug() {
