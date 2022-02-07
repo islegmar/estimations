@@ -345,7 +345,10 @@ function extendsJSON(old_json, new_json, allow_overwrite=true) {
  * TODO: pass as optional an argument with a map unit => number of days
  */
 function daysHuman2Number(duration) {
-  log("duration:" + duration);
+  log_debug("duration:" + duration);
+
+  if ( !duration ) return null;
+
   var value=null;
   if (typeof duration == "string" ) {
     const tags=duration.match(/(\d+\.?\d*)([^\d])/ );
@@ -439,6 +442,10 @@ function downloadData(data, filename='export.csv', mimetype='application/csv') {
   link.setAttribute('href', down_data);
   link.setAttribute('download', filename);
   link.click();
+}
+
+function getValue(data, prop, def="") {
+  return data.hasOwnProperty(prop) ? data[prop] : def;
 }
 
 /*

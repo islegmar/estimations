@@ -52,7 +52,7 @@ function getFlatDataNormalized(data, roles, type_activities, config) {
 }
 /**
  * Normalize one of the items in flat data.
- * Once notmalized:
+ * Once normalized:
  * - If it is Composed it would have "tasks" as an array of {}
  * - If it is Simple,it will have the field "effort" with the values in MD
  */
@@ -61,17 +61,11 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
 
   // Check the data we're going to check does not have some of the 
   // reserved keys that wew're going to use now
-  const reserved_keys = [ "effort", "original", "md" ];
-  reserved_keys.forEach( key => {
+  ["effort", "md" ].forEach( key => {
     if ( data.hasOwnProperty(key) ) {
       throw new Error ("Item '" + JSON.stringify(data) + "' contains the reserved key '" +key + "'");
     }
   });
-  data.original = cloneJSON(item);
-  // This is a field that will be calculated every time that the tree is refreshed
-  // the tree and it is the number of MD of the activity:
-  // - Composed tasks : sum of the MDs of all their tasks
-  // - Simple   tasks : the same as the effort except the weight factor
 
   // Composed : tasks
   if ( data.hasOwnProperty("tasks") ) {
@@ -97,7 +91,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
     // the "cold number" of MD per rol we understand where those values come from
     var notes="";
 
-    // 1> Keep in effort all the roles used in this task with their values as they 
+    // 1> Keep in 'effort' all the roles used in this task with their values as they 
     // are defined
     var effort={};
     for (const rol in roles ) {
@@ -187,22 +181,10 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
           }
           notes += my_notes.join(" + ");
         } else if ( calculation==="formula" ) {
-          // For the compuration of the derived data we take as source data the effort + duration
-          var src_data=cloneJSON(effort);
-          src_data["duration"] = !duration || duration==="inherit" ? 1.0 : duration;
-          log_is_low_debug() && log_low_debug("src_data : " + JSON.stringify(src_data) + ", item:" + JSON.stringify(item));
+          // entry : "rol" : "<expression to compute it>"
           type_cfg.derived.forEach(entry => {
-            // entry : "rol" : "<expression to compute it>"
             for(const new_rol in entry) {
-              var expr=entry[new_rol];
-              log_is_low_debug() && log_low_debug("[formula] " + new_rol + " : (1) " + expr);
-              notes += " => " + new_rol + " = " + expr;
-              for (const variable in src_data) {
-                expr=expr.replaceAll("{" + variable + "}", src_data[variable]);
-              }
-              log_is_low_debug() && log_low_debug("[formula] " + new_rol + " : (2) " + expr);
-              // notes += "=" + expr;
-              effort[new_rol] = eval(expr);
+              effort[new_rol]=computeExpression(entry[new_rol], null, effort, { "duration" : !duration || duration==="inherit" ? 1.0 : duration});
             }
           });
         } else {
@@ -224,11 +206,8 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
     // - effort that is a map with the roles and the MD
     // - notes that explain how we get the result
     data.effort = effort;
-    if ( data.hasOwnProperty("notes") ) {
-      data.notes = notes + " - " + data.notes;
-    } else {
-      data.notes = notes;
-    }
+    data.notes = notes;
+    // NOTE if the item has other attributes (as assimptions, comments, ....) they are kept
   }
 
   return data;
@@ -382,4 +361,34 @@ function computeExpressionCost(expr, effort, roles) {
     expr=expr.replaceAll("{" + rol + "}", effort.hasOwnProperty(rol) && roles[rol].hasOwnProperty("cost") ? effort[rol] * 8.0 * roles[rol]["cost"] : "0");
   }
   return eval(expr);
+}
+
+/**
+ * If fValue===null, we use as value the ones in the maps.
+ */ 
+function computeExpression(expr, fValue, ...args) {
+  if ( log_is_low_debug() ) {
+    log_low_debug("computeExpression(expr: '" + expr + "') with fValue " + fValue + " and data");
+    args.forEach(item => {
+      log_low_debug("  " + JSON.stringify(item));
+    });
+  }
+
+  var data={};
+  args.forEach(item => {
+    for (const k in item ) {
+      data[k] = item[k];
+    }
+  });
+  var my_expr=expr;
+  for (const key in data ) {
+    const value=fValue ? fValue(key) : data[key];
+    log_is_low_debug() && log_low_debug("key : " + key + " => value : " + value + ".");
+    my_expr=my_expr.replaceAll("{" + key + "}", value);
+  }
+  if ( my_expr.includes("{") ) {
+    throw new Error("Error evaluating '" + expr + "' with data '" + JSON.stringify(data) + "'. Some data not resolved in '" + my_expr + "'");
+  }
+
+  return my_expr;
 }

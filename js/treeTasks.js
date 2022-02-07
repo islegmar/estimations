@@ -50,8 +50,9 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
   }
   // TODO : not possible to show the assumptions as a list
   columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
-  columns.push({header: "Notes", "columnClass" : "notes", value : "notes"});
+  columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes_computed + node.data.notes_template; }});
 
+  // Show the checkboxes to show/hide columns in the tree
   if ( $p_col_selector ) {
     var eGroup=$p_col_selector.find(".content")[0];
     removeChildren(eGroup);
@@ -339,20 +340,31 @@ function getJsTreeData(d_flat_data, root_node) {
  * when rendering the tree, adiing the children nodes.
  */
 function getTreeNodeData(name, d_flat_data) {
+  log_is_low_debug() && log_low_debug("getTreeNodeData(d_flat_data[" + name + "]: " + JSON.stringify(d_flat_data[name]) + ")");
   // data keeps all the info that will be shown in the tree for ecah row
   // data.notes es computed every time we refresh the tree, for this reason we leave it here empty
   const my_flat_data=d_flat_data[name];
+  const isComposed = my_flat_data.hasOwnProperty("tasks");
+
+  // Some atttributes can be changed later (edited or computed) but we
+  // want to keep the "original" value coming from the template
   var my_node={
     text : name, 
     name : name,
     data : {
-      _original_node_config : my_flat_data,
-      isComposed : my_flat_data.hasOwnProperty("tasks"),
-      my_weight : 1.0,
-      duration: null,
-      notes : "", 
-      assumptions : my_flat_data.hasOwnProperty("assumptions") ? d_flat_data[name].assumptions.join() : "",
-      description : my_flat_data.hasOwnProperty("description") ? d_flat_data[name].description : ""
+      isComposed        : isComposed,
+      my_weight         : getValue(my_flat_data, "weight", "1.0"),
+      duration_template : daysHuman2Number(getValue(my_flat_data, "duration", null)),
+      notes_template    : getValue(my_flat_data, "notes", ""),
+      description       : getValue(my_flat_data, "description", ""),
+      assumptions       : getValue(my_flat_data, "assumptions", []).join(),
+      effort            : getValue(my_flat_data, "effort", null),
+      md                : null,
+      weight            : null,
+      duration          : null,
+      cost              : null,
+      md                : null,
+      notes_computed    : null
     },
     state : {
       opened : true,
@@ -360,18 +372,15 @@ function getTreeNodeData(name, d_flat_data) {
     }
   };
 
+  // Add the children nodes
   if ( my_node.data.isComposed ) {
-    if ( my_flat_data.hasOwnProperty("duration") ) {
-      my_node.data.duration=daysHuman2Number(my_flat_data.duration);
-    }
-
-    // Add the children
     my_node['children']=[];
     my_flat_data["tasks"].forEach(child_flat => {
       var child_node=getTreeNodeData(child_flat["name"], d_flat_data);
 
-      // Ok, when we have build the node we have set some information
-      // than now we can overwrite here with the most localized version
+      // Ok, when we have build the node with the data from that node but
+      // from the parent node we have some info than now we can overwrite 
+      // here with the most localized version
 
       if ( child_flat.hasOwnProperty("description") ) {
         child_node.data.description=child_flat.description;
@@ -403,8 +412,8 @@ function getTreeNodeData(name, d_flat_data) {
  * - weight 
  */
 function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
-  log_group_start("getNodeMDAndUpdate(" + node.text + ")");
-  const original_node_config=node.data._original_node_config;
+  log_group_start("getNodeMDAndUpdate(" + node.name + ")");
+  // This is the effort of this node that for the composed is the sum of the effort of allthe children
   var my_effort={};
   
   if ( log_is_low_debug() ) {
@@ -420,7 +429,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
-      var my_weight=weight * child_node.data.my_weight;
+      var my_weight=weight*child_node.data.my_weight;
       var parent_duration = node.data.duration;
       var child_effort = getNodeMDAndUpdate(jstree, child_node, my_weight, parent_duration, roles);
 
@@ -430,10 +439,11 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
   } else {
     log_low_debug("Pure estimation");
     if ( node.state.checked ) {
-      const original_md=original_node_config.effort;
-      // TODO: we have to clarigy the use of the original_node_config ...
+      const original_md=node.data.effort;
       for (const k in original_md ) {
-        my_effort[k] = original_md[k] * weight * (original_node_config.hasOwnProperty("duration") && original_node_config.duration==="inherit" ? parent_duration : 1.0);
+        // my_effort[k] = original_md[k] * weight * (original_node_config.hasOwnProperty("duration") && original_node_config.duration==="inherit" ? parent_duration : 1.0);
+        // TODO: duration==="inherit" or "pending"
+        my_effort[k] = original_md[k] * weight;
       }
     }
     log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
@@ -442,33 +452,28 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
   // -------------------------------------
   // Update the info of the node
   // -------------------------------------
-  if ( !node.data.hasOwnProperty("md") ) {
-    node.data.md={};
-    for ( const k in my_effort) {
-      node.data.md[k]=round(my_effort[k]);
-    }
+  node.data.md={};
+  for ( const k in my_effort) {
+    node.data.md[k]=round(my_effort[k]);
   }
   node.data.cost=getCost(my_effort, roles);
   node.data.weight=weight;
 
-  node.data.notes="";
+  node.data.notes_computed="";
   if ( weight!=1.0 ) {
-    node.data.notes+="[x" + weight + "] ";
+    node.data.notes_computed+="[x" + weight + "] ";
   }
-  if ( node.data.isComposed && node.data.hasOwnProperty("duration") && node.data.duration ) {
-    node.data.notes+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
+  if ( node.data.isComposed && node.data.duration ) {
+    node.data.notes_computed+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
     var my_notes=[];
     for ( const k in node.data.md ) {
       my_notes.push(round(node.data.md[k]/node.data.duration) + "x" + k);
     }
-    node.data.notes+=my_notes.join(" + ");
+    node.data.notes_computed+=my_notes.join(" + ");
   }
   // TODO: the mix with some attributes in data, other in original ....
-  if ( !node.data.isComposed && original_node_config.hasOwnProperty("duration") && original_node_config.duration==="inherit" ) {
-    node.data.notes+="[parent_duration:" + parent_duration + "]";
-  }
-  if ( original_node_config.notes ) {
-    node.data.notes+=original_node_config.notes;
+  if ( !node.data.isComposed && node.data.duration_templte==="inherit" ) {
+    node.data.notes_computed+="[parent_duration:" + parent_duration + "]";
   }
   log_group_end();
 
@@ -486,7 +491,7 @@ function updateTreeData(jstree, d_flat_data, roles) {
  * Recursive case. Clean all the values of MD before we start a new calculation.
  */
 function cleanMDTreeNode(jstree, node) {
-  // Special case, the node '#' is not shown and its chhild (see below) is our root 
+  // Special case, the node '#' is not shown and its child (see below) is our root 
   if ( !node ) {
     node=jstree.get_node('#');
   } else {
@@ -541,7 +546,7 @@ function export2CSVTree(jstree, roles) {
 function export2CSVNode(jstree, node, list, level=0) {
   var line={
     level : level,
-    notes : node.data.notes,
+    notes : node.data.notes_computed + node.data.notes_template,
     descripion : node.data.description,
     assumptions : node.data.assumptions,
     weight: node.data.weight,
