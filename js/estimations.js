@@ -118,7 +118,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
         for(const rol in effort ) {
           my_notes.push(effort[rol] + "x" + rol);
         }
-        notes += my_notes.join(" + ");
+        notes += "[duration:inherit] " + my_notes.join(" + ");
         // notes += "[duration:inherit]";
       } else {
         notes += duration + " days of ";
