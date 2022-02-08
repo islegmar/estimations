@@ -416,7 +416,7 @@ function getTreeNodeData(name, d_flat_data) {
  * - weight 
  */
 function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
-  log_group_start("getNodeMDAndUpdate(" + node.name + ")");
+  log_group_start("getNodeMDAndUpdate(" + node.text + ")");
   // This is the effort of this node that for the composed is the sum of the effort of allthe children
   var my_effort={};
   

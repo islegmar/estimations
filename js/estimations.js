@@ -133,7 +133,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
     } else if ( size ) {
       // Usually in type we have the name of the squad EXCEPT
       // if we have defined one squad by default
-      if ( !data.hasOwnProperty("team") && config.default_squad ) {
+      if ( !data.hasOwnProperty("type") && config.default_squad ) {
         type_activity=config.default_squad;
       }
       // Do nothing in this first phase
@@ -182,11 +182,15 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
           notes += my_notes.join(" + ");
         } else if ( calculation==="formula" ) {
           // entry : "rol" : "<expression to compute it>"
+          var my_notes=[];
           type_cfg.derived.forEach(entry => {
             for(const new_rol in entry) {
-              effort[new_rol]=computeExpression(entry[new_rol], null, effort, { "duration" : !duration || duration==="inherit" ? 1.0 : duration});
+              var expr=entry[new_rol];
+              my_notes.push(new_rol  + " (=" + expr + ")");
+              effort[new_rol]=computeExpression(expr, null, effort, { "duration" : !duration || duration==="inherit" ? 1.0 : duration});
             }
           });
+          notes += " AND " + my_notes.join(" + ");
         } else {
           alert("Unknown task type '" + type_activity + "' in '" + JSON.stringify(effort) + "'");
         }
@@ -390,5 +394,5 @@ function computeExpression(expr, fValue, ...args) {
     throw new Error("Error evaluating '" + expr + "' with data '" + JSON.stringify(data) + "'. Some data not resolved in '" + my_expr + "'");
   }
 
-  return my_expr;
+  return eval(my_expr);
 }

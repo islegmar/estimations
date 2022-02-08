@@ -37,7 +37,7 @@ Our company is specialized in the devolopment of plugins for a well known CMS. W
 - 1 week of **Definition** with the customer
 - **Development** of two Plugins
 
-Before we start we have to configure the [roles](demo/data/config/roles.json) we are going to use so we can start to write down the activities and estimations.
+Before we start we have to configure the [roles](demo/data/00.basic/roles.json) we are going to use so we can start to write down the activities and estimations.
 
 First, the project has Definition and Development
 
@@ -71,10 +71,11 @@ We have to develop 2  of them and our fist analysis:
 - One plugin is an standard one
 - The other more complex, used to browse AWS data, has the double of complexity:
 
-We can put all together in [a file with the estimations](demo/data/projects/project01.json) that produces [the following result](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project01.json&config=demo/data/config/config.json):
+We can put all together in [a file with the estimations](demo/data/00.basic/project.json) that produces [the following result](index.html?log_level=low_debug&roles=demo/data/00.basic/roles.json&estimations=demo/data/00.basic/project.json):
 - An activity can appear more than once (in this case "Plugin standard") with a different **weight**.
 - When an activity is used several times we can use the field **description**.
 - The tree allows to deactivate some parts so the efforts and costs are adjusted.
+- The nodes in the tree can me moved.
 - We get the sum of efforts and costs at all the levels.
 - In **Notes** we get the rational description how the values are obtained, not just the total *cold* number that provides little information about where this value comes from.
 
@@ -84,20 +85,19 @@ A very common practice is that the effort for some roles are set while for other
 - Development effort is set from the values of BE and FE
 - QA is a 30% of that development effort
 
-Those kind of rules can be set in the file [typeActivities](demo/data/config/typeActivities.json).
+Those kind of rules can be set in the file [typeActivities](demo/data/01.calculated/types.json).
 
     { 
       "development" : { 
         "_comment" : "Development tasks",
-        "calculation" : "percentage",
-        "base" : ["BE", "FE"], 
-        "derived" : {
-          "QA" : 0.3 
-        }
+        "calculation" : "calculated",
+        "derived" : [
+          { "QA" : "0.3*({BE}+{FE})" }
+        ]
       }
     }
 
-What it says is that in a task of **type development** the effort of QA = 30% (BE+FE) (look at the calculation method *percentage*)
+What it says is that in a task of **type development** the effort of QA = 30% (BE+FE) (look at the calculation method *calculated*)
 
 To introduce this change, we change the effort from:
 
@@ -110,7 +110,7 @@ to:
 
 As you can see the only modification is to add the new attribute **type** which value has to match with one of the keys in the file *typeActivities*. 
 
-If we put [all together](demo/data/projects/project02.json) we get [this new view](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project02.json&config=demo/data/config/config.json) where:
+If we put [all together](demo/data/01.calculated/project.json) we get [this new view](index.html?log_level=low_debug&roles=demo/data/01.calculated/roles.json&types=demo/data/01.calculated/types.json&estimations=demo/data/01.calculated/project.json) where:
 - The effort (and cost) of QA appears *magically*.
 - In Notes is shown where this value of QA comes from.
 
@@ -129,8 +129,8 @@ all this work will be done by one squad composed by:
 - 1 FE
 - 1 QA
 
-The first thing is to map the sizes we are using with days (remember, it is always time & money) in [the config file](demo/data/config/config.json).
-To configure the squad we add the info in the file [typeActivities](demo/data/config/typeActivities.json)
+The first thing is to map the sizes we are using with days (remember, it is always time & money) in [the config file](demo/data/02.squash/config.json).
+To configure the squad we add the info in the file [typeActivities](demo/data/02.squash/types.json)
 
     "red_squad" : { 
       "calculation" : "squad",
@@ -142,7 +142,7 @@ To configure the squad we add the info in the file [typeActivities](demo/data/co
     }
 
 where:
-- The calculation method is *squad* (before it was *percentage*)
+- The calculation method is *squad* (before it was *formula*)
 - Under **roles** is the team composition.
 
 Finally we have two add those two activities in or estimations
@@ -151,15 +151,15 @@ Finally we have two add those two activities in or estimations
     "Module#2" : { "type" : "red_squad", "size" : "XL" },
 
 
-Here you can see [the final file](demo/data/projects/project03.json) and the [demo](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project03.json&config=demo/data/config/config.json)
+Here you can see [the final file](demo/data/02.squash/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/02.squash/roles.json&types=demo/data/02.squash/types.json&estimations=demo/data/02.squash/project.json&config=demo/data/02.squash/config.json)
 
 ### But, can be used at larger scale
 
 Once we have more and more *standard* estimations to be reused, the amount of information makes it difficult to put it in one single file. To solve that we can use the **_includes** attribute in the files with the estimations.
 
-In our company every department has very clear which are their duties so the PMO has defined [the activities](demo/data/includes/pmo.json) they usually perform. 
+In our company every department has very clear which are their duties so the PMO has defined [the activities](demo/data/03.includes/pmo.json) they usually perform. 
 
-Also the Development environment has its [list of activities](demo/data/includes/development.json).
+Also the Development environment has its [list of activities](demo/data/03.includes/development.json).
 
 With this building blocks we can start to organize our project:
 
@@ -175,7 +175,7 @@ With this building blocks we can start to organize our project:
       }
     }
 
-Here you can see [the final file](demo/data/projects/project04.json) and the [demo](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project04.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
+Here you can see [the final file](demo/data/03.includes/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/03.includes/roles.json&types=demo/data/03.includes/types.json&estimations=demo/data/03.includes/project.json&config=demo/data/03.includes/config.json&baseDataURL=demo/data/03.includes/)
 
 ### I want more!!!
 
@@ -183,13 +183,13 @@ _Ok, you have convinced me. Now: I want more!!!_
 
 #### Default squad
 
-If you're using the squad model and you have a default squad configuration, the you define its name in the [config](demo/data/config/config.default-squad.json) in the attribute **default\_squad**. Of course, you have to remember to [define its composition](demo/data/config/typeActivities.json).
+If you're using the squad model and you have a default squad configuration, the you define its name in the [config](demo/data/04.default-squad/config.json) in the attribute **default\_squad**. Of course, you have to remember to [define its composition](demo/data/04.default-squad/types.json).
 
 Once we have this configuration in place define the effort can be so simple as 
 
     "Module#1" : { "size" : "S" }
 
-Here you can see [the final file](demo/data/projects/project05.json) and the [demo](index.html?roles=demo/data/config/roles.json&types=demo/data/config/typeActivities.json&estimations=demo/data/projects/project05.json&config=demo/data/config/config.default-squad.json&baseDataURL=demo/data/includes/)
+Here you can see [the final file](demo/data/04.default-squad/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/04.default-squad/roles.json&types=demo/data/04.default-squad/types.json&estimations=demo/data/04.default-squad/project.json&config=demo/data/04.default-squad/config.json)
 
 #### Formulas
 
@@ -289,7 +289,7 @@ So at the end of this stage we have a serie of roles with effort in days... exce
 *Second stage*: 
 
 Here is where the effect of the attribute **type** is applied. As we have seen, its value has to match with one the keys defined in [this configuration file](demo/data/config/typeActivities.json) and depending on the value of the attribute **calculation** associated to our type:
-- *percentage* : the number of days for the roles in **derived** as calculated using as base the sum of the values of the ones defined in **base**.
+- *formula* : the number of days for the roles in **derived** as calculated using a formula.
 - *squad* : its a serie of roles that compose the squad and the number for each indicates how many (similar to when we use the attribute duration). In order to compute the number of days we need the duration of the activity that, as we have seen before, is deduced from the value of **size**.
 
 ### config
