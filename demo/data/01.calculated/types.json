@@ -1,0 +1,9 @@
+{ 
+  "development" : { 
+    "_comment" : "Development tasks",
+    "calculation" : "formula",
+    "derived" : [
+      { "QA" : "0.3*({BE}+{FE})" }
+    ]
+  }
+}

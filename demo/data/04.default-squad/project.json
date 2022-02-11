@@ -1,0 +1,13 @@
+
+{
+  "Project" : { "tasks" : ["Definition", "Development"] },
+  "Definition" : { "duration" : 7, "PO" : 1, "BE" : 0.5, "FE" : 0.5 },
+  "Development" : { 
+    "tasks" : [
+      "Module#1",
+      "Module#2"
+    ]
+  },
+  "Module#1" : { "size" : "S" },
+  "Module#2" : { "type" : "red_squad", "size" : "L" }
+}

@@ -1,0 +1,11 @@
+{
+  "Project" : { "tasks" : ["Definition", "Development"] },
+  "Definition" : { "duration" : 7, "PO" : 1, "BE" : 0.5, "FE" : 0.5 },
+  "Development" : { 
+    "tasks" : [
+      "STD Plugin",
+      { "name" : "STD Plugin", "weight" : 2.0, "description" : "Browse AWS data" }
+    ]
+  },
+  "STD Plugin" : { "type" : "development", "duration" : 5, "BE" : 1, "FE" : 0.5}
+}
