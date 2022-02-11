@@ -1,0 +1,19 @@
+{
+  "My Project" : { 
+    "tasks" : [ 
+      "Level1"
+    ]
+  },
+  "Level1" : {
+    "tasks" : [
+      "Level2"
+    ]
+  },
+  "Level2" : {
+    "tasks" : [
+      "Task1", "Task2"
+    ]
+  },
+  "Task1" : { "duration" : "inherit", "PO" : 1, "A" : 1.5 },
+  "Task2" : { "duration" : 5, "PO" : 1, "A" : 1.5 }
+}

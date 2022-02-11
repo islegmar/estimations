@@ -203,6 +203,10 @@ Here you can see [the final file](demo/data/projects/project07.costs.json) and t
 
 Here you can see [the final file](demo/data/09.inherit-duration/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/09.inherit-duration/roles.json&estimations=demo/data/09.inherit-duration/project.json)
 
+#### Nodes with errors
+
+Here you can see [the final file](demo/data/10.nodes-with-errors/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/10.nodes-with-errors/roles.json&estimations=demo/data/10.nodes-with-errors/project.json)
+
 ## Using the sandbox
 
 TBD

@@ -368,7 +368,11 @@ function getTreeNodeData(name, d_flat_data) {
       md                : null,
       weight            : null,
       cost              : null,
-      notes_computed    : null
+      notes_computed    : null,
+      // if has_error==true can be the node itself or any of their
+      // chiñdren has an error
+      has_error         : false,
+      error_msg         : null
     },
     state : {
       opened : true,
@@ -431,7 +435,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     log_low_debug("With nodes");
     // TODO: do we have to do something, some check, between the value of parent_duration (arguments) 
     // and this one? Eg. in the argument has a value and this is null, which one should be valid?
-    parent_duration = node.data.duration;
+    parent_duration = node.data.duration ? node.data.duration : parent_duration;
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
@@ -439,6 +443,9 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
       var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, roles);
 
       my_effort = sumEffort(my_effort, child_effort, 1.0);
+      if ( child_node.data.has_error ) {
+        node.data.has_error=true;
+      }
     });
   // SIMPLE node
   } else {
@@ -446,7 +453,12 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     if ( node.state.checked ) {
       const original_md=node.data.effort;
       for (const k in node.data.effort ) {
-        my_effort[k] = node.data.effort[k] * weight * (node.data.duration_template==="inherit" ? parent_duration : 1.0);
+        if ( node.data.duration_template==="inherit" && !parent_duration ) {
+          node.data.has_error = true;
+          node.data.error_msg = "Inherit duration and not set in parent";
+        } else {
+          my_effort[k] = node.data.effort[k] * weight * (node.data.duration_template==="inherit" ? parent_duration : 1.0);
+        }
       }
     }
     log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
@@ -478,6 +490,13 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     node.data.notes_computed+="[parent_duration:" + parent_duration + "]";
   }
   log_group_end();
+  if ( node.data.has_error ) {
+    node.icon="img/warning.png";
+  } else if ( !node.data.isComposed ) {
+    node.icon="img/simple.png";
+  } else {
+    delete node.icon;
+  }
 
   return my_effort;
 }
@@ -501,6 +520,8 @@ function cleanMDTreeNode(jstree, node) {
     node.data.weight          = null;
     node.data.cost            = null;
     node.data.notes_computed  = "";
+    node.data.has_error       = false;
+    node.data.error_msg       = null;
   }
 
   //Set the effort in all the child nodes
