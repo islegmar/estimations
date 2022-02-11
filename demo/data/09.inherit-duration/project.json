@@ -11,7 +11,6 @@
     ]
   },
   "Sessions Customer" : { "duration" : "inherit", "PO" : 1, "A" : 1.5 },
-  "Development" : { "tasks" : [ "Simple Task", "Complex Task" ] },
-  "Simple Task"  : { "duration" : 20, "BE" : 2, "FE" : 1 },
-  "Complex Task" : { "type" : "r_d", "duration" : 20, "BE" : 2, "FE" : 1 }
+  "Development" : { "tasks" : [ "Simple Task" ] },
+  "Simple Task"  : { "duration" : 20, "BE" : 2, "FE" : 1 }
 }

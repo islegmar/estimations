@@ -90,14 +90,14 @@ Those kind of rules can be set in the file [typeActivities](demo/data/01.calcula
     { 
       "development" : { 
         "_comment" : "Development tasks",
-        "calculation" : "calculated",
+        "calculation" : "formula",
         "derived" : [
           { "QA" : "0.3*({BE}+{FE})" }
         ]
       }
     }
 
-What it says is that in a task of **type development** the effort of QA = 30% (BE+FE) (look at the calculation method *calculated*)
+What it says is that in a task of **type development** the effort of QA = 30% (BE+FE) (look at the calculation method *formula*)
 
 To introduce this change, we change the effort from:
 
@@ -201,7 +201,7 @@ Here you can see [the final file](demo/data/projects/project07.costs.json) and t
 
 #### Inherit duration
 
-Here you can see [the final file](demo/data/09.inherit-duration/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/09.inherit-duration/roles.json&estimations=demo/data/09.inherit-duration/project.json&types=demo/data/09.inherit-duration/types.json)
+Here you can see [the final file](demo/data/09.inherit-duration/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/09.inherit-duration/roles.json&estimations=demo/data/09.inherit-duration/project.json)
 
 ## Using the sandbox
 

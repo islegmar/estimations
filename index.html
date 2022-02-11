@@ -59,23 +59,22 @@
 
 <body>
 <h1 id="title">Estimations</h1>
-<div>
-  Please load below your files and click the Render button to see the tree of efforts and estimations. For more information please <a href="README.md">go here</a>
+
+<div id="col_selector" class="collapsable collapsed">
+  <h3 class="header">Columns</h3>
+  <div class="content">
+  </div>
 </div>
-
-
 <div id="pSearchTree" style="display:none;">
   <label>Seach in the tree : </label>
   <input id="bTreeSearch" type="text" value="" class="input search"/>
 </div>
-<div id="col_selector" class="collapsable collapsed">
-  <p class="header">Columns</p>
-  <div class="content">
-  </div>
-</div>
 <div id="tree_tasks" style="zoom:1.0">
 </div>
 
+<p>
+Please load in <b>Data</b> your files and click the Render button to see the tree of efforts and estimations. For more information please <a href="README.md">go here</a>
+</p>
 <button id="bRender">Render</button>&nbsp;
 <button id="bExportCSV">Export CSV</button>&nbsp;
 <button id="bExportJSON">Export JSON</button>&nbsp;
@@ -113,42 +112,47 @@
   <button>Create</button>
 </div>
 
-<div>
-  Load here your files. Some files have been uploaded with some sample files (config, roles, types) but you can upload your own files and overwrite them.
-</div>
 
-<div id="tabs">
-  <ul>
-    <li><a href="#load_estimations">Estimations</a></li>
-      <li><a href="#load_config">Config</a></li>
-      <li><a href="#load_roles">Roles</a></li>
-      <li><a href="#load_types">Types</a></li>
-    </ul>
-    <div id="load_estimations">
-      <input type="file" multiple/>
-      <br/>
-      <a href="demo/data/project03.json">Example</a>
-      <div class="content"></div>
-    </div>
-    <div id="load_config">
-      <input type="file"/>
-      <br/>
-      <a href="demo/data/config.json">Example</a>
-      <div class="content"></div>
-    </div>
-    <div id="load_roles">
-      <input type="file"/>
-      <br/>
-      <a href="demo/data/roles.json">Example</a>
-      <div class="content"></div>
-    </div>
-    <div id="load_types">
-      <input type="file"/>
-      <br/>
-      <a href="demo/data/typeActivities.json">Example</a>
-      <div class="content"></div>
-    </div>
+<div id="col_selector" class="collapsable collapsed">
+  <h3 class="header">Data</h3>
+  <div class="content">
+    <p>
+      Load here your files. Some files have been uploaded with some sample files (config, roles, types) but you can upload your own files and overwrite them.
+    </p>
+    <div id="tabs">
+      <ul>
+        <li><a href="#load_estimations">Estimations</a></li>
+          <li><a href="#load_config">Config</a></li>
+          <li><a href="#load_roles">Roles</a></li>
+          <li><a href="#load_types">Types</a></li>
+        </ul>
+        <div id="load_estimations">
+          <input type="file" multiple/>
+          <br/>
+          <a href="demo/data/project03.json">Example</a>
+          <div class="content"></div>
+        </div>
+        <div id="load_config">
+          <input type="file"/>
+          <br/>
+          <a href="demo/data/config.json">Example</a>
+          <div class="content"></div>
+        </div>
+        <div id="load_roles">
+          <input type="file"/>
+          <br/>
+          <a href="demo/data/roles.json">Example</a>
+          <div class="content"></div>
+        </div>
+        <div id="load_types">
+          <input type="file"/>
+          <br/>
+          <a href="demo/data/typeActivities.json">Example</a>
+          <div class="content"></div>
+        </div>
+      </div>
   </div>
+</div>
 </body>
 <script>
 
