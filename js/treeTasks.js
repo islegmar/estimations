@@ -21,30 +21,24 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       "columnClass" : "rol_" + rol_name , 
       "wideCellClass" : "number", 
       value : function(node){ 
-        const rol_cfg=roles[rol_name];
-
-        // Sepecial cases:
-        // - Column not represent a Rol but a Cost 
-        // - Column is a calculated field
-        if ( !rol_cfg.hasOwnProperty("cost") ) {
-          // Column is an calculated effort 
-          if ( rol_cfg.hasOwnProperty("formula") ) {
-            return formatString(computeExpressionEffort(rol_cfg.formula, node.data.md, roles));
-          // Column is a calculated cost
-          } else if ( rol_cfg.hasOwnProperty("isCost") && rol_cfg["isCost"] && rol_cfg.hasOwnProperty("base") ) {
-            const base=rol_cfg["base"];
-            // Base is a rol
-            if ( roles[base].hasOwnProperty("cost") ) {
-              return formatString(computeExpressionCost("{" + base + "}", node.data.md, roles), formatterCost);
-            // Base is a computed field
-            } else if ( roles[base].hasOwnProperty("formula") ) {
-              return formatString(computeExpressionCost(roles[base].formula, node.data.md, roles), formatterCost);
-            }
+        return formatDataValue(node.data.md, rol_name); 
+      }
+    });
+  }
+  if ( config.hasOwnProperty("additional_columns") ) {
+    config.additional_columns.forEach(item => {
+      for ( const col_name in item ) {
+        columns.push({
+          header: col_name, 
+          "columnClass" : "rol_" + col_name , 
+          "wideCellClass" : "number", 
+          value : function(node){ 
+            // Not use formatDataValue because some columns can be effort 
+            // and other costs, so when this field was calculated it was already
+            // taken into account the type of data so the proper formatted was applied
+            return getValue(node.data.additional_columns, col_name);
           }
-        // Column is simple a cost with its rol
-        } else  {
-          return formatDataValue(node.data.md, rol_name); 
-        }
+        });
       }
     });
   }
@@ -160,7 +154,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
   */
   $(document).on('dnd_stop.vakata', function(e, data) {
     const jstree=$container.jstree(true);
-    updateTreeData(jstree, d_flat, roles);
+    updateTreeData(jstree, d_flat, roles, config);
     jstree.redraw(true);
   });
   
@@ -180,7 +174,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
   // To cancel the drop must be dine before, this event is triggered after is done
   $container.on("custom.refresh loaded.jstree check_node.jstree uncheck_node.jstree move_node.jstree", function (e, data) {
     const jstree=$container.jstree(true);
-    updateTreeData(jstree, d_flat, roles);
+    updateTreeData(jstree, d_flat, roles, config);
     jstree.redraw(true);
   });
 
@@ -365,10 +359,11 @@ function getTreeNodeData(name, d_flat_data) {
       description       : getValue(my_flat_data, "description", ""),
       duration          : !my_duration || ["inherit", "pending"].includes(my_duration) ? null : daysHuman2Number(my_duration),
       // Computed everytime tje tree is refreshed
-      md                : null,
-      weight            : null,
-      cost              : null,
-      notes_computed    : null,
+      md                 : null,
+      weight             : null,
+      cost               : null,
+      notes_computed     : null,
+      additional_columns : null,
       // if has_error==true can be the node itself or any of their
       // chiñdren has an error
       has_error         : false,
@@ -419,7 +414,7 @@ function getTreeNodeData(name, d_flat_data) {
  * - d_flat_data : the data in flat mode 
  * - weight 
  */
-function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
+function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config) {
   log_group_start("getNodeMDAndUpdate(" + node.text + ")");
   // This is the effort of this node that for the composed is the sum of the effort of allthe children
   var my_effort={};
@@ -440,7 +435,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
       var real_weight=weight*child_node.data.my_weight;
-      var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, roles);
+      var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, roles, config);
 
       my_effort = sumEffort(my_effort, child_effort, 1.0);
       if ( child_node.data.has_error ) {
@@ -508,7 +503,46 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
       node.data.notes_computed+="[my_duration:" + node.data.duration + "]";
     }
   }
+
+  // But... this is not all!!!! Maybe we have defined some additional columns that
+  // must be computed now!!!!
+  node.data.additional_columns={};
+  if ( config.hasOwnProperty("additional_columns") ) {
+    // We process the columns in order because values of some columns depends of other
+    // BUT to access the information is better to have a map
+    var map_additional_columns={};
+    var list_additional_columns=[];
+    config.additional_columns.forEach(item => {
+      for ( const col_name in item ) {
+        map_additional_columns[col_name]=item[col_name];
+        list_additional_columns.push(col_name);
+      }
+    });
+
+    list_additional_columns.forEach(col_name => {
+      var col_cfg = map_additional_columns[col_name];
+      var col_value=null;
+
+      // Column is an calculated effort 
+      if ( col_cfg.hasOwnProperty("formula") ) {
+        col_value=formatString(computeExpressionEffort(col_cfg.formula, my_effort, roles));
+      // Column is a calculated cost
+      } else if ( col_cfg.hasOwnProperty("isCost") && col_cfg["isCost"] && col_cfg.hasOwnProperty("base") ) {
+        const base=col_cfg["base"];
+        log_low_debug("base : " + base);
+        // Base is a rol
+        if ( roles[base] ) {
+          col_value=formatString(computeExpressionCost("{" + base + "}", my_effort, roles), formatterCost);
+        // Base is a computed field
+        } else if ( map_additional_columns[base].hasOwnProperty("formula") ) {
+          col_value=formatString(computeExpressionCost(map_additional_columns[base].formula, my_effort, roles), formatterCost);
+        }
+      }
+      node.data.additional_columns[col_name]=col_value;
+    });
+  }
   log_group_end();
+
   if ( node.data.has_error ) {
     node.icon="img/warning.png";
   } else if ( !node.data.isComposed ) {
@@ -520,10 +554,10 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
   return my_effort;
 }
 
-function updateTreeData(jstree, d_flat_data, roles) {
+function updateTreeData(jstree, d_flat_data, roles, config) {
   cleanMDTreeNode(jstree);
   jstree.get_node('#').children.forEach(id => {
-    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, null, roles);
+    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, null, roles, config);
   });
 }
 
@@ -535,12 +569,13 @@ function cleanMDTreeNode(jstree, node) {
   if ( !node ) {
     node=jstree.get_node('#');
   } else {
-    node.data.md              = {};
-    node.data.weight          = null;
-    node.data.cost            = null;
-    node.data.notes_computed  = "";
-    node.data.has_error       = false;
-    node.data.error_msg       = null;
+    node.data.md                 = {};
+    node.data.weight             = null;
+    node.data.cost               = null;
+    node.data.notes_computed     = "";
+    node.data.has_error          = false;
+    node.data.error_msg          = null;
+    node.data.additional_columns = [];
   }
 
   //Set the effort in all the child nodes
