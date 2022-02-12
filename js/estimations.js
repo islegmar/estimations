@@ -112,14 +112,13 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
     // 2> Initial calculation of the MD
     // duration : the values is the factor
     if ( duration ) {
-      if ( duration === "inherit" ) {
-        log_is_low_debug() && log_low_debug("Inherit duration for " + JSON.stringify(item));
+      if ( duration === "inherit" || duration === "pending" ) {
+        log_is_low_debug() && log_low_debug("duration " + duration + " for " + JSON.stringify(item));
         var my_notes=[];
         for(const rol in effort ) {
           my_notes.push(effort[rol] + "x" + rol);
         }
-        notes += "[duration:inherit] " + my_notes.join(" + ");
-        // notes += "[duration:inherit]";
+        notes += "[duration:" + duration + "] " + my_notes.join(" + ");
       } else {
         notes += duration + " days of ";
         var my_notes=[];
@@ -187,7 +186,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
             for(const new_rol in entry) {
               var expr=entry[new_rol];
               my_notes.push(new_rol  + " (=" + expr + ")");
-              effort[new_rol]=computeExpression(expr, null, effort, { "duration" : !duration || duration==="inherit" ? 1.0 : duration});
+              effort[new_rol]=computeExpression(expr, null, effort, { "duration" : !duration || duration==="inherit" || duration==="pending" ? 1.0 : duration});
             }
           });
           notes += " AND " + my_notes.join(" + ");

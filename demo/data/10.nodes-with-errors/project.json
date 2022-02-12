@@ -11,9 +11,10 @@
   },
   "Level2" : {
     "tasks" : [
-      "Task1", "Task2"
+      "Task1", "Task2", "Task3"
     ]
   },
   "Task1" : { "duration" : "inherit", "PO" : 1, "A" : 1.5 },
-  "Task2" : { "duration" : 5, "PO" : 1, "A" : 1.5 }
+  "Task2" : { "duration" : 5, "PO" : 1, "A" : 1.5 },
+  "Task3" : { "duration" : "pending", "BE" : 2, "FE" : 1 }
 }
