@@ -445,7 +445,7 @@ function downloadData(data, filename='export.csv', mimetype='application/csv') {
 }
 
 function getValue(data, prop, def="") {
-  return data.hasOwnProperty(prop) ? data[prop] : def;
+  return data && data.hasOwnProperty(prop) ? data[prop] : def;
 }
 
 /*
