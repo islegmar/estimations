@@ -234,7 +234,8 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       } else if ( action==="newTask" ) {
         $p_new_task.modal();
       } else if ( action==="edit" ) {
-        if ( tree_node.data.isComposed ) {
+        // TODO: manage it nicer ..
+        if ( tree_node.data.isComposed || tree_node.data.duration_template === "pending" ) {
           $p_edit_node.addClass("composed");
         } else {
           $p_edit_node.removeClass("composed");
@@ -274,7 +275,7 @@ function createJSTree($container_parent, $container, $search, d_flat, roles, typ
       const my_weight=parseFloat($p_edit_node.find("input[name='weight']").val());
       tree_node.data.my_weight=my_weight;
 
-      if ( tree_node.data.isComposed ) {
+      if ( tree_node.data.isComposed || tree_node.data.duration_template === "pending" ) {
         const duration=$p_edit_node.find("input[name='duration']").val();
         tree_node.data.duration=daysHuman2Number(duration);
       }
@@ -349,26 +350,29 @@ function getTreeNodeData(name, d_flat_data) {
   // Some atttributes can be changed later (edited or computed) but we
   // want to keep the "original" value coming from the template
   var my_duration=getValue(my_flat_data, "duration", null);
-  my_duration=!my_duration || ["inherit", "pending"].includes(my_duration) ? my_duration : daysHuman2Number(my_duration);
   var my_node={
     text : name, 
     name : name,
     data : {
       isComposed        : isComposed,
       // Data from the template, do not change
-      duration_template : my_duration,
+      duration_template : !my_duration || ["inherit", "pending"].includes(my_duration) ? my_duration : daysHuman2Number(my_duration),
       notes_template    : getValue(my_flat_data, "notes", ""),
       assumptions       : getValue(my_flat_data, "assumptions", []).join(),
       effort            : getValue(my_flat_data, "effort", null),
       // Can be edited (usually using a form)
       my_weight         : getValue(my_flat_data, "weight", 1.0),
       description       : getValue(my_flat_data, "description", ""),
-      duration          : my_duration,
+      duration          : !my_duration || ["inherit", "pending"].includes(my_duration) ? null : daysHuman2Number(my_duration),
       // Computed everytime tje tree is refreshed
       md                : null,
       weight            : null,
       cost              : null,
-      notes_computed    : null
+      notes_computed    : null,
+      // if has_error==true can be the node itself or any of their
+      // chiñdren has an error
+      has_error         : false,
+      error_msg         : null
     },
     state : {
       opened : true,
@@ -431,7 +435,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     log_low_debug("With nodes");
     // TODO: do we have to do something, some check, between the value of parent_duration (arguments) 
     // and this one? Eg. in the argument has a value and this is null, which one should be valid?
-    parent_duration = node.data.duration;
+    parent_duration = node.data.duration ? node.data.duration : parent_duration;
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
@@ -439,14 +443,36 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
       var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, roles);
 
       my_effort = sumEffort(my_effort, child_effort, 1.0);
+      if ( child_node.data.has_error ) {
+        node.data.has_error=true;
+      }
     });
   // SIMPLE node
   } else {
     log_low_debug("Pure estimation");
     if ( node.state.checked ) {
-      const original_md=node.data.effort;
-      for (const k in node.data.effort ) {
-        my_effort[k] = node.data.effort[k] * weight * (node.data.duration_template==="inherit" ? parent_duration : 1.0);
+      var my_duration = null;
+
+      if ( node.data.duration_template==="pending" ) {
+        my_duration = node.data.duration;
+        if ( !my_duration ) {
+          node.data.has_error = true;
+          node.data.error_msg = "duration not set in node";
+        }
+      } else if ( node.data.duration_template==="inherit" ) {
+        my_duration = parent_duration;
+        if ( !my_duration ) {
+          node.data.has_error = true;
+          node.data.error_msg = "Inherit duration and not set in parent";
+        }
+      } else {
+        my_duration=1.0;
+      }
+
+      if ( !node.data.has_error ) {
+        for (const k in node.data.effort ) {
+          my_effort[k] = node.data.effort[k] * weight * my_duration;
+        }
       }
     }
     log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
@@ -474,10 +500,22 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles) {
     }
     node.data.notes_computed+=my_notes.join(" + ");
   }
-  if ( !node.data.isComposed && node.data.duration_template==="inherit" ) {
-    node.data.notes_computed+="[parent_duration:" + parent_duration + "]";
+  if ( !node.data.isComposed  ) {
+    if ( node.data.duration_template==="inherit" ) {
+      node.data.notes_computed+="[parent_duration:" + parent_duration + "]";
+    }
+    if ( node.data.duration_template==="pending" ) {
+      node.data.notes_computed+="[my_duration:" + node.data.duration + "]";
+    }
   }
   log_group_end();
+  if ( node.data.has_error ) {
+    node.icon="img/warning.png";
+  } else if ( !node.data.isComposed ) {
+    node.icon="img/simple.png";
+  } else {
+    delete node.icon;
+  }
 
   return my_effort;
 }
@@ -501,6 +539,8 @@ function cleanMDTreeNode(jstree, node) {
     node.data.weight          = null;
     node.data.cost            = null;
     node.data.notes_computed  = "";
+    node.data.has_error       = false;
+    node.data.error_msg       = null;
   }
 
   //Set the effort in all the child nodes
