@@ -8,8 +8,7 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
 
   // ---- Columns to be shown for every row
   var columns=[
-    {width: 200, header: "Name" },
-    {header: "Description", value: "description", "columnClass" : "Description"},
+    {header: "Name" },
     {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
     {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
     {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
@@ -502,6 +501,9 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config
     if ( node.data.duration_template==="pending" ) {
       node.data.notes_computed+="[my_duration:" + node.data.duration + "]";
     }
+  }
+  if ( node.data.description ) {
+    node.text=node.data.description;
   }
 
   // But... this is not all!!!! Maybe we have defined some additional columns that
