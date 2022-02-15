@@ -317,18 +317,7 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
     export2CSVTree($container.jstree(true), names);
   });
   $('#bExportJSON').click(function(){
-    var names=[];
-    for(const ind in list_roles) {
-      for(const k in list_roles[ind] ) {
-        name.push(k);
-      }
-    }
-    config.additional_columns.forEach(item => {
-      for ( const k in item ) {
-        names.push(k);
-      }
-    });
-    export2JSONTree($container.jstree(true), names);
+    export2JSONTree($container.jstree(true));
   });
 }
 
@@ -694,33 +683,6 @@ function export2CSVNode(jstree, node, list, level=0) {
 // data structure is going to change and that means incompatibilities :-(
 // The solution (not so fast and more work but safer) is to export to a neutral format
 // that can be imported again
-function export2JSONTree(jstree, roles) {
-  /*
-  var json={};
-  jstree.get_node('#').children.forEach(id => {
-    export2JSONNode(jstree, jstree.get_node(id), json);
-  });
-  */
+function export2JSONTree(jstree) {
   downloadData(JSON.stringify(jstree.get_json(), null, 2), 'export.json', 'application/json');
-}
-
-function export2JSONNode(jstree, node, json) {
-  const children = node.children;
-  if ( children.length>0 ) {
-    var my_childs=[];
-    children.forEach(id => {
-      const child_node=jstree.get_node(id);
-      my_childs.push(child_node.text);
-    });
-    json[node.text] = { "tasks" : my_childs };
-
-    children.forEach(id => {
-      const child_node=jstree.get_node(id);
-      export2JSONNode(jstree, child_node, json);
-    });
-  } else {
-    const original_node_config=node.data._original_node_config;
-    var my_item=cloneJSON(original_node_config.original);
-    json[node.text]=my_item;
-  }
 }
