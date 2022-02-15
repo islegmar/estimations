@@ -449,6 +449,22 @@ function getValue(data, prop, def="") {
   return data && data.hasOwnProperty(prop) ? data[prop] : def;
 }
 
+/**
+ * Convert an array of objets (so we matter the order) in a map.
+ */
+function listOfMaps2Map(listMaps) {
+  var map={};
+
+  for(var ind in listMaps) {
+    var item=listMaps[ind];
+    for(const k in item ) {
+      map[k]=item[k];
+    }
+  }
+
+  return map;
+}
+
 /*
 downloadCSV(
   [ 
