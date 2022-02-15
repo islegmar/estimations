@@ -1,8 +1,0 @@
-{
-  "My Project" : { 
-    "tasks" : [ 
-      "Implementation"
-    ]
-  },
-  "Implementation" : { "type" : "formula", "BE" : 2, "FE" : 3, "QA" : 10 }
-}

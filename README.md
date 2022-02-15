@@ -191,14 +191,6 @@ Once we have this configuration in place define the effort can be so simple as
 
 Here you can see [the final file](demo/data/04.default-squad/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/04.default-squad/roles.json&types=demo/data/04.default-squad/types.json&estimations=demo/data/04.default-squad/project.json&config=demo/data/04.default-squad/config.json)
 
-#### Formulas
-
-Here you can see [the final file](demo/data/projects/project06.formulas.json) and the [demo](index.html?roles=demo/data/config/roles.formulas.json&types=demo/data/config/typeActivities.formulas.json&estimations=demo/data/projects/project06.formulas.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
-
-#### Calculated roles
-
-Here you can see [the final file](demo/data/projects/project07.costs.json) and the [demo](index.html?roles=demo/data/config/roles.costs.json&types=demo/data/config/typeActivities.costs.json&estimations=demo/data/projects/project07.costs.json&config=demo/data/config/config.json&baseDataURL=demo/data/includes/)
-
 #### Inherit duration
 
 Here you can see [the final file](demo/data/09.inherit-duration/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/09.inherit-duration/roles.json&estimations=demo/data/09.inherit-duration/project.json)
@@ -207,7 +199,7 @@ Here you can see [the final file](demo/data/09.inherit-duration/project.json) an
 
 Here you can see [the final file](demo/data/10.nodes-with-errors/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/10.nodes-with-errors/roles.json&estimations=demo/data/10.nodes-with-errors/project.json)
 
-#### Additional Columns
+#### Additional Columns / Formulas / Calculated roles
 
 Here you can see [the final file](demo/data/11.additional-columns/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/11.additional-columns/roles.json&estimations=demo/data/11.additional-columns/project.json&config=demo/data/11.additional-columns/config.json)
 
@@ -295,12 +287,12 @@ The meaning of the number that goes with every rol depends on the other paramete
 - If exists the parameter **duration**, its value is the number of days the activity lasts and number with the rol indicates how many of that rol will be involved, where factions are allowed. So if duration=10 and BE=1.5 means 1.5 of the rol BE working during 10 days and that means 15 days of BE.
 - If there are no **duration** the numbers of the roles is just the number of days for that rol.
 
-So at the end of this stage we have a serie of roles with effort in days... except in an especial case, where there are no roles but well the attribute **size**, which value is a *fancy way* to specify the duration. In [this configuration file](demo/data/config/config.json) we can find the relation between sizes and durations. 
+So at the end of this stage we have a serie of roles with effort in days... except in an especial case, where there are no roles but well the attribute **size**, which value is a *fancy way* to specify the duration. In [this configuration file](demo/data/samples/config.json) we can find the relation between sizes and durations. 
 
 
 *Second stage*: 
 
-Here is where the effect of the attribute **type** is applied. As we have seen, its value has to match with one the keys defined in [this configuration file](demo/data/config/typeActivities.json) and depending on the value of the attribute **calculation** associated to our type:
+Here is where the effect of the attribute **type** is applied. As we have seen, its value has to match with one the keys defined in [this configuration file](demo/data/samples/types.json) and depending on the value of the attribute **calculation** associated to our type:
 - *formula* : the number of days for the roles in **derived** as calculated using a formula.
 - *squad* : its a serie of roles that compose the squad and the number for each indicates how many (similar to when we use the attribute duration). In order to compute the number of days we need the duration of the activity that, as we have seen before, is deduced from the value of **size**.
 
@@ -357,5 +349,5 @@ TBD
 - DONE : In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department => Instead this a more generic option has been implemented allowing in roles the calculation of derived fields using formulas which computation can be done in effort or costs. => Refactored: columns added in the "config" and they are computed when computing the nodes
 - DONE : support dor duration : parent/pending. If not set show a warning that can be popilated in the tree.
 - DONE : Import the exported JSON (that is NOT the same as the original flat_data)
-- When exporting in CSV configure in config the fields to be exported and their order
+- DONE : When exporting in CSV configure in config the fields to be exported and their order => convert roles in an array so the order is kept
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)

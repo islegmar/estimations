@@ -42,7 +42,8 @@
 /**
  * Return flat_data with all their items normalized
  */
-function getFlatDataNormalized(data, roles, type_activities, config) {
+function getFlatDataNormalized(data, list_roles, type_activities, config) {
+  var roles=listOfMaps2Map(list_roles);
   var new_data={};
   for (const key in data ) {
     new_data[key] = getFlatItemNormalized(data[key], roles, type_activities, config);

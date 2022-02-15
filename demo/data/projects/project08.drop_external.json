@@ -1,6 +1,0 @@
-{
-  "My Projecte" : { "tasks" : [
-    "Meeting Customer"
-  ]},
-  "Meeting Customer" : { "duration" : 1, "PO" : 1, "A":0.5}
-}

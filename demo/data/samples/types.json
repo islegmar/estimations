@@ -1,0 +1,11 @@
+{ 
+  "red_squad" : { 
+    "_comment" : "This is the red squad. The effort will be in base of the size of the activity that is the number of days",
+    "calculation" : "squad",
+    "roles" : {
+      "BE" : 2,
+      "FE" : 1,
+      "QA" : 0.3 
+    }
+  }
+}
