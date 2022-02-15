@@ -303,10 +303,32 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   }
 
   $('#bExportCSV').click(function(){
-    export2CSVTree($container.jstree(true), Object.keys(roles));
+    var names=[];
+    for(const ind in list_roles) {
+      for(const k in list_roles[ind] ) {
+        names.push(k);
+      }
+    }
+    config.additional_columns.forEach(item => {
+      for ( const k in item ) {
+        names.push(k);
+      }
+    });
+    export2CSVTree($container.jstree(true), names);
   });
   $('#bExportJSON').click(function(){
-    export2JSONTree($container.jstree(true), Object.keys(roles));
+    var names=[];
+    for(const ind in list_roles) {
+      for(const k in list_roles[ind] ) {
+        name.push(k);
+      }
+    }
+    config.additional_columns.forEach(item => {
+      for ( const k in item ) {
+        names.push(k);
+      }
+    });
+    export2JSONTree($container.jstree(true), names);
   });
 }
 
@@ -639,6 +661,11 @@ function export2CSVNode(jstree, node, list, level=0) {
   line["Name_" + level]=node.text;
   for (const k in node.data.md) {
     line[k]=node.data.md[k];
+  }
+  if ( node.data.additional_columns ) {
+    for(const k in node.data.additional_columns ) {
+      line[k]=node.data.additional_columns[k];
+    }
   }
   list.push(line);
 
