@@ -1,9 +1,0 @@
-
-{
-  "Meeting Customer" : { "duration" : 1, "PO" : 1, "A":0.5},
-  "Project Acceptance" : { "tasks" : [
-    "Meeting Customer",
-    "Demo"
-  ]},
-  "Demo" : { "duration" : 1, "PO" : 1, "QA" : 1, "A" : 1}
-}

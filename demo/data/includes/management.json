@@ -1,5 +1,0 @@
-{
-  "_comment" : "Management activities in the projects",
-  "MANAGEMENT" : { "tasks" : ["Meetings with the customer"] },
-  "Meetings with the customer" : { "duration" : 1, "PO" : 1, "A":0.5}
-}
