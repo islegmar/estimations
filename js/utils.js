@@ -351,28 +351,29 @@ function daysHuman2Number(duration) {
 
   var value=null;
   if (typeof duration == "string" ) {
-    const tags=duration.match(/(\d+\.?\d*)([^\d])/ );
+    const tags=duration.match(/(\d+\.?\d*)([^\d]*)/ );
     if ( tags ) {
       value = parseFloat(tags[1]);
       const unit = tags[2];
 
+      log_debug("Duration : '" + duration + "' => value : '" + tags[1] + "', unit : '" + tags[2] + "'");
+         
       if ( unit==="d" ) {
         value *= 1.0;
       } else if ( unit==="w" ) {
         value *= 5.0;
       } else if ( unit==="m" ) {
         value *= 20.0;
-      } else {
+      } else if (unit) {
         throw new Error("Unknown unit '" + unit + "' in duration '" + duration + "'");
       }
-      log("duration : " + duration + " => value:" + value + ", unit: " + unit);
     } else {
-      log("No units : " + parseFloat(duration));
-      value=parseFloat(duration);
+      log_error("Not possible to parse the string with the duration '" + duration + "'. Set 1.0 as duration");
+      value=1.0;
     }
   } else {
-    log("Number : " + parseFloat(duration));
     value=parseFloat(duration);
+    log_debug("Number. duration : " + duration + " => value : " + value);
   }
 
   return value;

@@ -356,6 +356,6 @@ TBD
 - DONE : In the formulas we can calculate based on MD but also in Costs => not at task level but at column level with the definition of costs' fields in roles.
 - DONE : In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department => Instead this a more generic option has been implemented allowing in roles the calculation of derived fields using formulas which computation can be done in effort or costs. => Refactored: columns added in the "config" and they are computed when computing the nodes
 - DONE : support dor duration : parent/pending. If not set show a warning that can be popilated in the tree.
-- When exporting in CSV onfigure in config the fields to be exported and their order
-- Import the exported JSON (that is NOT the same as the original flat_data)
+- DONE : Import the exported JSON (that is NOT the same as the original flat_data)
+- When exporting in CSV configure in config the fields to be exported and their order
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)
