@@ -1,0 +1,342 @@
+[
+  {
+    "id": "j1_1",
+    "text": "My Project",
+    "li_attr": {
+      "id": "j1_1"
+    },
+    "a_attr": {
+      "href": "#",
+      "id": "j1_1_anchor"
+    },
+    "state": {
+      "loaded": true,
+      "opened": true,
+      "selected": false,
+      "disabled": false,
+      "checked": true
+    },
+    "data": {
+      "isComposed": true,
+      "duration_template": null,
+      "notes_template": "",
+      "assumptions": "",
+      "effort": null,
+      "my_weight": 1,
+      "description": "",
+      "duration": null,
+      "md": {
+        "PO": 15,
+        "A": 22.5,
+        "BE": 4,
+        "FE": 2
+      },
+      "weight": 1,
+      "cost": 21120,
+      "notes_computed": "",
+      "additional_columns": {
+        "_DEV": "6.00",
+        "_MGM": "37.50",
+        "BECost": "3200,00 €",
+        "_DEVCost": "19.200,00 €",
+        "_MGMCost": "1920,00 €"
+      },
+      "has_error": false,
+      "error_msg": null
+    },
+    "children": [
+      {
+        "id": "j1_2",
+        "text": "Level1",
+        "li_attr": {
+          "id": "j1_2"
+        },
+        "a_attr": {
+          "href": "#",
+          "id": "j1_2_anchor"
+        },
+        "state": {
+          "loaded": true,
+          "opened": true,
+          "selected": true,
+          "disabled": false,
+          "checked": true
+        },
+        "data": {
+          "isComposed": true,
+          "duration_template": null,
+          "notes_template": "",
+          "assumptions": "",
+          "effort": null,
+          "my_weight": 1,
+          "description": "",
+          "duration": 5,
+          "md": {
+            "PO": 15,
+            "A": 22.5,
+            "BE": 4,
+            "FE": 2
+          },
+          "weight": 1,
+          "cost": 21120,
+          "notes_computed": "[5d] Team : 3xPO + 4.5xA + 0.8xBE + 0.4xFE",
+          "additional_columns": {
+            "_DEV": "6.00",
+            "_MGM": "37.50",
+            "BECost": "3200,00 €",
+            "_DEVCost": "19.200,00 €",
+            "_MGMCost": "1920,00 €"
+          },
+          "has_error": false,
+          "error_msg": null
+        },
+        "children": [
+          {
+            "id": "j1_3",
+            "text": "Level2",
+            "li_attr": {
+              "id": "j1_3"
+            },
+            "a_attr": {
+              "href": "#",
+              "id": "j1_3_anchor"
+            },
+            "state": {
+              "loaded": true,
+              "opened": false,
+              "selected": false,
+              "disabled": false,
+              "checked": true
+            },
+            "data": {
+              "isComposed": true,
+              "duration_template": null,
+              "notes_template": "",
+              "assumptions": "",
+              "effort": null,
+              "my_weight": 1,
+              "description": "",
+              "duration": null,
+              "md": {
+                "PO": 10,
+                "A": 15,
+                "BE": 4,
+                "FE": 2
+              },
+              "weight": 1,
+              "cost": 20480,
+              "notes_computed": "",
+              "additional_columns": {
+                "_DEV": "6.00",
+                "_MGM": "25.00",
+                "BECost": "3200,00 €",
+                "_DEVCost": "19.200,00 €",
+                "_MGMCost": "1280,00 €"
+              },
+              "has_error": false,
+              "error_msg": null
+            },
+            "children": [
+              {
+                "id": "j1_4",
+                "text": "Task1",
+                "icon": "img/simple.png",
+                "li_attr": {
+                  "id": "j1_4"
+                },
+                "a_attr": {
+                  "href": "#",
+                  "id": "j1_4_anchor"
+                },
+                "state": {
+                  "loaded": true,
+                  "opened": true,
+                  "selected": false,
+                  "disabled": false,
+                  "checked": true
+                },
+                "data": {
+                  "isComposed": false,
+                  "duration_template": "inherit",
+                  "notes_template": "[duration:inherit] 1xPO + 1.5xA",
+                  "assumptions": "",
+                  "effort": {
+                    "PO": 1,
+                    "A": 1.5
+                  },
+                  "my_weight": 1,
+                  "description": "",
+                  "duration": null,
+                  "md": {
+                    "PO": 5,
+                    "A": 7.5
+                  },
+                  "weight": 1,
+                  "cost": 640,
+                  "notes_computed": "[parent_duration:5]",
+                  "additional_columns": {
+                    "_DEV": "",
+                    "_MGM": "12.50",
+                    "BECost": "",
+                    "_DEVCost": "",
+                    "_MGMCost": "640,00 €"
+                  },
+                  "has_error": false,
+                  "error_msg": null
+                },
+                "children": []
+              },
+              {
+                "id": "j1_5",
+                "text": "Task2",
+                "icon": "img/simple.png",
+                "li_attr": {
+                  "id": "j1_5"
+                },
+                "a_attr": {
+                  "href": "#",
+                  "id": "j1_5_anchor"
+                },
+                "state": {
+                  "loaded": true,
+                  "opened": true,
+                  "selected": false,
+                  "disabled": false,
+                  "checked": true
+                },
+                "data": {
+                  "isComposed": false,
+                  "duration_template": 5,
+                  "notes_template": "5 days of 1xPO + 1.5xA",
+                  "assumptions": "",
+                  "effort": {
+                    "PO": 5,
+                    "A": 7.5
+                  },
+                  "my_weight": 1,
+                  "description": "",
+                  "duration": 5,
+                  "md": {
+                    "PO": 5,
+                    "A": 7.5
+                  },
+                  "weight": 1,
+                  "cost": 640,
+                  "notes_computed": "",
+                  "additional_columns": {
+                    "_DEV": "",
+                    "_MGM": "12.50",
+                    "BECost": "",
+                    "_DEVCost": "",
+                    "_MGMCost": "640,00 €"
+                  },
+                  "has_error": false,
+                  "error_msg": null
+                },
+                "children": []
+              },
+              {
+                "id": "j1_6",
+                "text": "Task3",
+                "icon": "img/simple.png",
+                "li_attr": {
+                  "id": "j1_6"
+                },
+                "a_attr": {
+                  "href": "#",
+                  "id": "j1_6_anchor"
+                },
+                "state": {
+                  "loaded": true,
+                  "opened": true,
+                  "selected": true,
+                  "disabled": false,
+                  "checked": true
+                },
+                "data": {
+                  "isComposed": false,
+                  "duration_template": "pending",
+                  "notes_template": "[duration:pending] 2xBE + 1xFE",
+                  "assumptions": "",
+                  "effort": {
+                    "BE": 2,
+                    "FE": 1
+                  },
+                  "my_weight": 1,
+                  "description": "",
+                  "duration": 2,
+                  "md": {
+                    "BE": 4,
+                    "FE": 2
+                  },
+                  "weight": 1,
+                  "cost": 19200,
+                  "notes_computed": "[my_duration:2]",
+                  "additional_columns": {
+                    "_DEV": "6.00",
+                    "_MGM": "",
+                    "BECost": "3200,00 €",
+                    "_DEVCost": "19.200,00 €",
+                    "_MGMCost": ""
+                  },
+                  "has_error": false,
+                  "error_msg": null
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "j1_7",
+            "text": "Task1",
+            "icon": "img/simple.png",
+            "li_attr": {
+              "id": "j1_7"
+            },
+            "a_attr": {
+              "href": "#",
+              "id": "j1_7_anchor"
+            },
+            "state": {
+              "loaded": true,
+              "opened": true,
+              "selected": false,
+              "disabled": false,
+              "checked": true
+            },
+            "data": {
+              "isComposed": false,
+              "duration_template": "inherit",
+              "notes_template": "[duration:inherit] 1xPO + 1.5xA",
+              "assumptions": "",
+              "effort": {
+                "PO": 1,
+                "A": 1.5
+              },
+              "my_weight": 1,
+              "description": "",
+              "duration": null,
+              "md": {
+                "PO": 5,
+                "A": 7.5
+              },
+              "weight": 1,
+              "cost": 640,
+              "notes_computed": "[parent_duration:5]",
+              "additional_columns": {
+                "_DEV": "",
+                "_MGM": "12.50",
+                "BECost": "",
+                "_DEVCost": "",
+                "_MGMCost": "640,00 €"
+              },
+              "has_error": false,
+              "error_msg": null
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+]

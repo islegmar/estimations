@@ -3,8 +3,8 @@
 /**
  * Create the object jstree
  */
-function createJSTree($container_parent, $container, $search, d_flat, roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
-  const d_tree = getJsTreeData(d_flat, root_node);
+function createJSTree($container_parent, $container, $search, tree_data, d_flat, roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
+  const d_tree = tree_data ? tree_data[0] : getJsTreeData(d_flat, root_node);
 
   // ---- Columns to be shown for every row
   var columns=[

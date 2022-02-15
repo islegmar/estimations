@@ -1,0 +1,9 @@
+{
+  "additional_columns" : [
+    { "_DEV"     : { "formula" : "{BE}+{FE}+{QA}" } },
+    { "_MGM"     : { "formula" : "{PO}+{A}"       } },
+    { "BECost"   : { "isCost" : true, "base" : "BE"   } },
+    { "_DEVCost" : { "isCost" : true, "base" : "_DEV" } },
+    { "_MGMCost" : { "isCost" : true, "base" : "_MGM" } }
+  ]
+}

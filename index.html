@@ -125,6 +125,7 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
           <li><a href="#load_config">Config</a></li>
           <li><a href="#load_roles">Roles</a></li>
           <li><a href="#load_types">Types</a></li>
+          <li><a href="#load_project">Project</a></li>
         </ul>
         <div id="load_estimations">
           <input type="file" multiple/>
@@ -150,6 +151,12 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
           <a href="demo/data/typeActivities.json">Example</a>
           <div class="content"></div>
         </div>
+        <div id="load_project">
+          <input type="file"/>
+          <br/>
+          <a href="demo/samples/project.json">Example</a>
+          <div class="content"></div>
+        </div>
       </div>
   </div>
 </div>
@@ -165,32 +172,36 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
  */
 function saveData(container, name, new_data, callback) {
   log_low_debug("saveData(name:" + name + ")");
-  removeCommentsFromJSON(new_data);
-  
-  var data=lsGetJSON(name);
-  if ( !data ) {
-    log_low_debug("New data ....");
-    data={};
-  } else {
-    log_low_debug("Updating ....");
-  }
-  extendsJSON(data, new_data);
-
-  // Ok for the especial case of estimations we have to keep the original 
-  // so we can later can compute the root node
-  /*
-  if ( name==="estimations" ) {
-    lsSetJSON(name + "_original", data);
-  }
-  */
-  loadExternal(data, upd_data => {
-    container.querySelector(".content").innerHTML='';
-    container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
-    lsSetJSON(name, data);
-    if ( callback ) {
-      callback(upd_data);
+  if ( new_data ) {
+    removeCommentsFromJSON(new_data);
+    
+    var data=lsGetJSON(name);
+    if ( !data ) {
+      log_low_debug("New data ....");
+      data={};
+    } else {
+      log_low_debug("Updating ....");
     }
-  }, getURLParam("baseDataURL"));
+    extendsJSON(data, new_data);
+
+    // Ok for the especial case of estimations we have to keep the original 
+    // so we can later can compute the root node
+    /*
+    if ( name==="estimations" ) {
+      lsSetJSON(name + "_original", data);
+    }
+    */
+    loadExternal(data, upd_data => {
+      container.querySelector(".content").innerHTML='';
+      container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
+      lsSetJSON(name, data);
+      if ( callback ) {
+        callback(upd_data);
+      }
+    }, getURLParam("baseDataURL"));
+  } else {
+    lsDelJSON(name);
+  }
 }
 
 
@@ -213,7 +224,6 @@ function setListenerUploadJSON(container, name, url, url_prefix) {
   });
 }
 
-
 /**
  * Generates the tree
  */ 
@@ -229,21 +239,10 @@ function generatesTree() {
   const roles=lsGetJSON('roles');
   const typeActivities=lsGetJSON('types');
   var   estimations=lsGetJSON('estimations');
-  if ( config && roles && typeActivities && estimations ) {
-    estimations=getFlatDataNormalized(
-      estimations,
-      roles,
-      typeActivities, 
-      config
-    );
+  const project=lsGetJSON('project');
 
-    // Ok we need to do a "trick" to get the root node
-    // const estimations_original=lsGetJSON("estimations_original");
-    // const my_roots=getRootNodes(estimations).filter( k=> estimations_original.hasOwnProperty(k));
-    // const root = my_roots.length==1 ? my_roots[0] : null;
-    const root=getURLParam("root", null);
-
-
+  // TODO : unify
+  if ( project ) {
     // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
     $("#tree_tasks").empty();
     $("#tree_tasks").append("<div class='content'></div>");
@@ -251,16 +250,52 @@ function generatesTree() {
       $('#tree_tasks'), 
       $('#tree_tasks .content'), 
       $('#bTreeSearch'), 
+      project,
       estimations, 
       roles, 
       typeActivities, 
       config, 
-      root, 
+      null, 
       $('#select_activity'),
       $('#edit_node'),
       $('#new_task'),
       $('#col_selector')
     );
+  } else {
+    if ( config && roles && typeActivities && estimations ) {
+      estimations=getFlatDataNormalized(
+        estimations,
+        roles,
+        typeActivities, 
+        config
+      );
+
+      // Ok we need to do a "trick" to get the root node
+      // const estimations_original=lsGetJSON("estimations_original");
+      // const my_roots=getRootNodes(estimations).filter( k=> estimations_original.hasOwnProperty(k));
+      // const root = my_roots.length==1 ? my_roots[0] : null;
+      const root=getURLParam("root", null);
+
+
+      // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
+      $("#tree_tasks").empty();
+      $("#tree_tasks").append("<div class='content'></div>");
+      createJSTree(
+        $('#tree_tasks'), 
+        $('#tree_tasks .content'), 
+        $('#bTreeSearch'), 
+        null,
+        estimations, 
+        roles, 
+        typeActivities, 
+        config, 
+        root, 
+        $('#select_activity'),
+        $('#edit_node'),
+        $('#new_task'),
+        $('#col_selector')
+      );
+    }
   }
 }
 
@@ -282,6 +317,7 @@ $( function() {
 lsDelJSON('config');
 lsDelJSON('roles');
 lsDelJSON('types');
+lsDelJSON('project');
 lsDelJSON('estimations');
 
 // Get the data in order. Maybe some data is not specified
@@ -304,20 +340,43 @@ fetchJSONFile(getURLParam("config"), function(config) {
       if ( !typeActivities ) typeActivities = {};
       saveData(container, 'types', typeActivities);
 
-      fetchJSONFile(getURLParam("estimations"), function(estimations) {
-        container=document.getElementById('load_estimations');
-        setListenerUploadJSON(container, 'estimations');
-        // In estimations because it can have includes, we need a callback to 
-        // render when all the data has been loaded
-        if ( estimations ) {
-          saveData(container, 'estimations', estimations, function() {
-            generatesTree();
-          });
-        }
+      fetchJSONFile(getURLParam("project"), function(project) {
+        container=document.getElementById('load_project');
+        setListenerUploadJSON(container, 'project');
+        if ( !project ) project = null;
+        saveData(container, 'project', project);
+
+        fetchJSONFile(getURLParam("estimations"), function(estimations) {
+          container=document.getElementById('load_estimations');
+          setListenerUploadJSON(container, 'estimations');
+          // In estimations because it can have includes, we need a callback to 
+          // render when all the data has been loaded
+          if ( estimations ) {
+            saveData(container, 'estimations', estimations, function() {
+              generatesTree();
+            });
+          }
+        });
       });
     });
   });
 });
+
+/*
+document.querySelector("#bImportJSON").addEventListener('change', function(e) {
+  loadLocalFiles(
+    e.target.files, 
+    // Secuencial process of the files uploaded. In some cases we allow upload
+    // several files. like with the estimations
+    (file, txt_result) => {
+      alert("name : " + name + ", json : " + JSON.parse(txt_result));
+    },
+    tot => {
+      log_low_debug("Processed : " + tot + " files");
+    }
+  );
+});
+*/
 
 </script>
 </html>
