@@ -1,0 +1,8 @@
+[
+  { "PO"  : { "cost" : 60.0, "centers" : { "cheap" : 6.0, "expensive" : 600.0 } } },
+  { "A"   : { "cost" : 40.0, "centers" : { "cheap" : 4.0, "expensive" : 400.0 } } },
+  { "BE"  : { "cost" : 80.0, "centers" : {                "expensive" : 800.0 } } },
+  { "FE"  : { "cost" : 50.0, "centers" : { "cheap" : 5.0                      } } },
+  { "QA"  : { "cost" : 55.0, "centers" : { "cheap" : 5.0, "expensive" : 550.0 } } },
+  { "SEC" : { "cost" : 70.0, "centers" : { "cheap" : 7.0, "expensive" : 700.0 } } }
+]

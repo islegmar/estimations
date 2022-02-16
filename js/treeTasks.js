@@ -11,6 +11,7 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   var columns=[
     {header: "Name" },
     {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
+    {header: "CostCenter", "columnClass" : "costCenter", value : "cost_center" },
     {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
     {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
@@ -260,6 +261,11 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
 
   // Edit a node
   if ( $p_edit_node ) {
+    var $sel_cost_center=$p_edit_node.find(".cost_center select");
+    getAllCostCenters(roles).forEach(cost_center => {
+      $sel_cost_center.append($("<option>").val(cost_center).text(cost_center));
+    });
+
     $p_edit_node.find("button").click(function() {
       const tree_node = $container.data("sel_node");
 
@@ -273,6 +279,9 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
         const duration=$p_edit_node.find("input[name='duration']").val();
         tree_node.data.duration=daysHuman2Number(duration);
       }
+
+      const cost_center=$p_edit_node.find("*[name='cost_center']").val();
+      tree_node.data.cost_center=cost_center;
 
       $.modal.close();
       $container.trigger("custom.refresh");
@@ -363,14 +372,16 @@ function getTreeNodeData(name, d_flat_data) {
     data : {
       isComposed        : isComposed,
       // Data from the template, do not change
-      duration_template : !my_duration || ["inherit", "pending"].includes(my_duration) ? my_duration : daysHuman2Number(my_duration),
-      notes_template    : getValue(my_flat_data, "notes", ""),
-      assumptions       : getValue(my_flat_data, "assumptions", []).join(),
-      effort            : getValue(my_flat_data, "effort", null),
+      duration_template    : !my_duration || ["inherit", "pending"].includes(my_duration) ? my_duration : daysHuman2Number(my_duration),
+      notes_template       : getValue(my_flat_data, "notes", ""),
+      assumptions          : getValue(my_flat_data, "assumptions", []).join(),
+      effort               : getValue(my_flat_data, "effort", null),
+      cost_center_template : getValue(my_flat_data, "cost_center", "default"),
       // Can be edited (usually using a form)
       my_weight         : getValue(my_flat_data, "weight", 1.0),
       description       : getValue(my_flat_data, "description", ""),
       duration          : !my_duration || ["inherit", "pending"].includes(my_duration) ? null : daysHuman2Number(my_duration),
+      cost_center       : getValue(my_flat_data, "cost_center", ""),
       // Computed everytime tje tree is refreshed
       md                 : null,
       weight             : null,
@@ -427,30 +438,39 @@ function getTreeNodeData(name, d_flat_data) {
  * - d_flat_data : the data in flat mode 
  * - weight 
  */
-function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config) {
+function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_center, roles, config) {
   log_group_start("getNodeMDAndUpdate(" + node.text + ")");
   // This is the effort of this node that for the composed is the sum of the effort of allthe children
   var my_effort={};
   
   if ( log_is_low_debug() ) {
-    log_low_debug("getNodeMDAndUpdate(weight:" + weight +" , parent_duration:" + parent_duration +")");
+    log_low_debug("getNodeMDAndUpdate(weight:" + weight +" , parent_duration:" + parent_duration + ", parent_cost_center : " + parent_cost_center + ")");
     log_low_debug("node.data : " + JSON.stringify(node.data, null, 2));
   }
   const children = node.children;
 
   // COMPOSED node
-  if ( children.length>0 ) {
+  if ( node.data.isComposed /*children.length>0*/ ) {
     log_low_debug("With nodes");
     // TODO: do we have to do something, some check, between the value of parent_duration (arguments) 
     // and this one? Eg. in the argument has a value and this is null, which one should be valid?
     parent_duration = node.data.duration ? node.data.duration : parent_duration;
+    parent_cost_center = node.data.cost_center ? node.data.cost_center : parent_cost_center;
+    node.data.cost=0.0;
+    node.data.additional_columns={};
+
     children.forEach(id => {
       // In the original info from the nodes, the weight of some nodes can be other than 1.0
       const child_node=jstree.get_node(id);
       var real_weight=weight*child_node.data.my_weight;
-      var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, roles, config);
+      // TODO - Maybe the function getNodeMD... should not return nothing, just update the node, so we can use the updated info
+      // later (as with the cost)
+      var child_effort = getNodeMDAndUpdate(jstree, child_node, real_weight, parent_duration, parent_cost_center, roles, config);
 
-      my_effort = sumEffort(my_effort, child_effort, 1.0);
+      my_effort = sumMaps(my_effort, child_effort);
+      node.data.cost += child_node.data.cost;
+      updateMap(node.data.additional_columns, child_node.data.additional_columns);
+
       if ( child_node.data.has_error ) {
         node.data.has_error=true;
       }
@@ -481,6 +501,48 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config
         for (const k in node.data.effort ) {
           my_effort[k] = node.data.effort[k] * weight * my_duration;
         }
+
+        // Compute the costs 
+        var roles_costs=getCostsByCenter(roles, node.data.cost_center ? node.data.cost_center : parent_cost_center);
+        node.data.cost=getCost(my_effort, roles_costs);
+
+        // But... this is not all!!!! Maybe we have defined some additional columns that
+        // must be computed now!!!!
+        node.data.additional_columns={};
+        if ( config.hasOwnProperty("additional_columns") ) {
+          // We process the columns in order because values of some columns depends of other
+          // BUT to access the information is better to have a map
+          var map_additional_columns={};
+          var list_additional_columns=[];
+          config.additional_columns.forEach(item => {
+            for ( const col_name in item ) {
+              map_additional_columns[col_name]=item[col_name];
+              list_additional_columns.push(col_name);
+            }
+          });
+
+          list_additional_columns.forEach(col_name => {
+            var col_cfg = map_additional_columns[col_name];
+            var col_value=null;
+
+            // Column is an calculated effort 
+            if ( col_cfg.hasOwnProperty("formula") ) {
+              col_value=computeExpressionEffort(col_cfg.formula, my_effort, roles);
+            // Column is a calculated cost
+            } else if ( col_cfg.hasOwnProperty("isCost") && col_cfg["isCost"] && col_cfg.hasOwnProperty("base") ) {
+              const base=col_cfg["base"];
+              log_low_debug("base : " + base);
+              // Base is a rol
+              if ( roles[base] ) {
+                col_value=computeExpressionCost("{" + base + "}", my_effort, roles_costs)
+              // Base is a computed field
+              } else if ( map_additional_columns[base].hasOwnProperty("formula") ) {
+                col_value=computeExpressionCost(map_additional_columns[base].formula, my_effort, roles_costs)
+              }
+            }
+            node.data.additional_columns[col_name]=col_value;
+          });
+        }
       }
     }
     log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
@@ -493,22 +555,23 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config
   for ( const k in my_effort) {
     node.data.md[k]=round(my_effort[k]);
   }
-  node.data.cost=getCost(my_effort, roles);
   node.data.weight=weight;
 
+  // NOTES
   node.data.notes_computed="";
   if ( weight!=1.0 ) {
     node.data.notes_computed+="[x" + weight + "] ";
   }
-  if ( node.data.isComposed && node.data.duration ) {
-    node.data.notes_computed+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
-    var my_notes=[];
-    for ( const k in node.data.md ) {
-      my_notes.push(round(node.data.md[k]/node.data.duration) + "x" + k);
+  if ( node.data.isComposed ) {
+    if ( node.data.duration ) {
+      node.data.notes_computed+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
+      var my_notes=[];
+      for ( const k in node.data.md ) {
+        my_notes.push(round(node.data.md[k]/node.data.duration) + "x" + k);
+      }
+      node.data.notes_computed+=my_notes.join(" + ");
     }
-    node.data.notes_computed+=my_notes.join(" + ");
-  }
-  if ( !node.data.isComposed  ) {
+  } else {
     if ( node.data.duration_template==="inherit" ) {
       node.data.notes_computed+="[parent_duration:" + parent_duration + "]";
     }
@@ -516,47 +579,11 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config
       node.data.notes_computed+="[my_duration:" + node.data.duration + "]";
     }
   }
+
   if ( node.data.description ) {
     node.text=node.data.description;
   }
 
-  // But... this is not all!!!! Maybe we have defined some additional columns that
-  // must be computed now!!!!
-  node.data.additional_columns={};
-  if ( config.hasOwnProperty("additional_columns") ) {
-    // We process the columns in order because values of some columns depends of other
-    // BUT to access the information is better to have a map
-    var map_additional_columns={};
-    var list_additional_columns=[];
-    config.additional_columns.forEach(item => {
-      for ( const col_name in item ) {
-        map_additional_columns[col_name]=item[col_name];
-        list_additional_columns.push(col_name);
-      }
-    });
-
-    list_additional_columns.forEach(col_name => {
-      var col_cfg = map_additional_columns[col_name];
-      var col_value=null;
-
-      // Column is an calculated effort 
-      if ( col_cfg.hasOwnProperty("formula") ) {
-        col_value=formatString(computeExpressionEffort(col_cfg.formula, my_effort, roles));
-      // Column is a calculated cost
-      } else if ( col_cfg.hasOwnProperty("isCost") && col_cfg["isCost"] && col_cfg.hasOwnProperty("base") ) {
-        const base=col_cfg["base"];
-        log_low_debug("base : " + base);
-        // Base is a rol
-        if ( roles[base] ) {
-          col_value=formatString(computeExpressionCost("{" + base + "}", my_effort, roles), formatterCost);
-        // Base is a computed field
-        } else if ( map_additional_columns[base].hasOwnProperty("formula") ) {
-          col_value=formatString(computeExpressionCost(map_additional_columns[base].formula, my_effort, roles), formatterCost);
-        }
-      }
-      node.data.additional_columns[col_name]=col_value;
-    });
-  }
   log_group_end();
 
   if ( node.data.has_error ) {
@@ -573,7 +600,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, roles, config
 function updateTreeData(jstree, d_flat_data, roles, config) {
   cleanMDTreeNode(jstree);
   jstree.get_node('#').children.forEach(id => {
-    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, null, roles, config);
+    getNodeMDAndUpdate(jstree, jstree.get_node(id), 1.0, null, null, roles, config);
   });
 }
 
