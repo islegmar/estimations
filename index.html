@@ -166,39 +166,46 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
 // ------------------------------------------------------------------- Functions
 /**
  * Save JSON in local storage and put the JSON in a container so we can take a look (debug).
- * Also perform some generic actions as:
- * - Remove comments
- * - Load _includes
+ * The data can represe nt an object (usually this is the case) or an arrya (roles).
+ * If if is an object:
+ *   - Remove comments
+ *   - Load _includes
+ * If it is an array, just store it.
+ * The data can 
  */
 function saveData(container, name, new_data, callback) {
-  log_low_debug("saveData(name:" + name + ")");
+  log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
   if ( new_data ) {
-    removeCommentsFromJSON(new_data);
-    
-    var data=lsGetJSON(name);
-    if ( !data ) {
-      log_low_debug("New data ....");
-      data={};
+    if ( Array.isArray(new_data) ) {
+      lsSetJSON(name, new_data);
     } else {
-      log_low_debug("Updating ....");
-    }
-    extendsJSON(data, new_data);
-
-    // Ok for the especial case of estimations we have to keep the original 
-    // so we can later can compute the root node
-    /*
-    if ( name==="estimations" ) {
-      lsSetJSON(name + "_original", data);
-    }
-    */
-    loadExternal(data, upd_data => {
-      container.querySelector(".content").innerHTML='';
-      container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
-      lsSetJSON(name, data);
-      if ( callback ) {
-        callback(upd_data);
+      removeCommentsFromJSON(new_data);
+      
+      var data=lsGetJSON(name);
+      if ( !data ) {
+        log_low_debug("New data ....");
+        data={};
+      } else {
+        log_low_debug("Updating ....");
       }
-    }, getURLParam("baseDataURL"));
+      extendsJSON(data, new_data);
+
+      // Ok for the especial case of estimations we have to keep the original 
+      // so we can later can compute the root node
+      /*
+      if ( name==="estimations" ) {
+        lsSetJSON(name + "_original", data);
+      }
+      */
+      loadExternal(data, upd_data => {
+        container.querySelector(".content").innerHTML='';
+        container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
+        lsSetJSON(name, data);
+        if ( callback ) {
+          callback(upd_data);
+        }
+      }, getURLParam("baseDataURL"));
+    }
   } else {
     lsDelJSON(name);
   }
@@ -331,7 +338,7 @@ fetchJSONFile(getURLParam("config"), function(config) {
   fetchJSONFile(getURLParam("roles"), function(roles) {
     container=document.getElementById('load_roles');
     setListenerUploadJSON(container, 'roles');
-    if ( !roles ) roles = {};
+    if ( !roles ) roles = [];
     saveData(container, 'roles', roles);
 
     fetchJSONFile(getURLParam("types"), function(typeActivities) {

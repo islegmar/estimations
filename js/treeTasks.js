@@ -43,8 +43,8 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
     });
   }
   // TODO : not possible to show the assumptions as a list
-  columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
   columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes_computed + node.data.notes_template; }});
+  columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
 
   // Show the checkboxes to show/hide columns in the tree
   if ( $p_col_selector ) {
@@ -309,11 +309,13 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
         names.push(k);
       }
     }
-    config.additional_columns.forEach(item => {
-      for ( const k in item ) {
-        names.push(k);
-      }
-    });
+    if ( config.hasOwnProperty("additional_columns") ) {
+      config.additional_columns.forEach(item => {
+        for ( const k in item ) {
+          names.push(k);
+        }
+      });
+    }
     export2CSVTree($container.jstree(true), names);
   });
   $('#bExportJSON').click(function(){
