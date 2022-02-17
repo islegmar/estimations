@@ -133,7 +133,7 @@ table tbody tr.active-row {
   border:1px dotted black;
 }
 */
-.jstree-grid-cell {
+.jstree-grid-column:not(.jstree-grid-column-0) .jstree-grid-cell {
   box-shadow: inset 1px 1px 1px 1px grey;
   box-sizing: border-box;
 }

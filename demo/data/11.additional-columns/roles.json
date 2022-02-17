@@ -1,6 +1,6 @@
 [
-  { "PO"  : { "cost" : 60.0 } },
-  { "A"   : { "cost" : 40.0 } },
+  { "PO"  : { "cost" : 60.0 , "hidden" : true }},
+  { "A"   : { "cost" : 40.0 , "hidden" : true }},
   { "BE"  : { "cost" : 80.0 } },
   { "FE"  : { "cost" : 50.0 } },
   { "QA"  : { "cost" : 55.0 } },
