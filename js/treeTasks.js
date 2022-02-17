@@ -11,7 +11,8 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   var columns=[
     {header: "Name" },
     {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
-    {header: "CostCenter", "columnClass" : "costCenter", value : "cost_center" },
+    {header: "O. CostCenter", "columnClass" : "costCenter", value : "cost_center" },
+    {header: "CostCenter", "columnClass" : "costCenter", value : "final_cost_center" },
     {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
     {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
@@ -379,18 +380,20 @@ function getTreeNodeData(name, d_flat_data) {
       notes_template       : getValue(my_flat_data, "notes", ""),
       assumptions          : getValue(my_flat_data, "assumptions", []).join(),
       effort               : getValue(my_flat_data, "effort", null),
-      cost_center_template : getValue(my_flat_data, "cost_center"),
       // Can be edited (usually using a form)
       my_weight         : getValue(my_flat_data, "weight", 1.0),
       description       : getValue(my_flat_data, "description", ""),
       duration          : !my_duration || ["inherit", "pending"].includes(my_duration) ? null : daysHuman2Number(my_duration),
+      // cost_center initially comes from the template and can be edited in the form but it is NOT the one used in the calculation
       cost_center       : getValue(my_flat_data, "cost_center"),
-      // Computed everytime tje tree is refreshed
+      // Computed everytime te tree is refreshed
       md                 : null,
       weight             : null,
       cost               : null,
       notes_computed     : null,
       additional_columns : null,
+      // This is the one used in the calculation
+      final_cost_center  : null,
       // if has_error==true can be the node itself or any of their
       // chiñdren has an error
       has_error         : false,
@@ -452,11 +455,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_c
   }
   const children = node.children;
 
-  if ( parent_cost_center ) {
-    node.data.cost_center=parent_cost_center;
-  } else if ( !node.data.cost_center ) {
-    node.data.cost_center=node.data.cost_center_template;
-  }
+  node.data.final_cost_center=node.data.cost_center ? node.data.cost_center : parent_cost_center;
 
   // COMPOSED node
   if ( node.data.isComposed /*children.length>0*/ ) {
@@ -512,7 +511,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_c
         }
 
         // Compute the costs 
-        var roles_costs=getCostsByCenter(roles, node.data.cost_center);
+        var roles_costs=getCostsByCenter(roles, node.data.final_cost_center);
         node.data.cost=getCost(my_effort, roles_costs);
 
         // But... this is not all!!!! Maybe we have defined some additional columns that
