@@ -330,6 +330,9 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   $('#bExportJSON').click(function(){
     export2JSONTree($container.jstree(true));
   });
+  $('#bExportCosts').click(function(){
+    exportCosts(roles);
+  });
 }
 
 /*
@@ -376,12 +379,12 @@ function getTreeNodeData(name, d_flat_data) {
       notes_template       : getValue(my_flat_data, "notes", ""),
       assumptions          : getValue(my_flat_data, "assumptions", []).join(),
       effort               : getValue(my_flat_data, "effort", null),
-      cost_center_template : getValue(my_flat_data, "cost_center", "default"),
+      cost_center_template : getValue(my_flat_data, "cost_center"),
       // Can be edited (usually using a form)
       my_weight         : getValue(my_flat_data, "weight", 1.0),
       description       : getValue(my_flat_data, "description", ""),
       duration          : !my_duration || ["inherit", "pending"].includes(my_duration) ? null : daysHuman2Number(my_duration),
-      cost_center       : getValue(my_flat_data, "cost_center", ""),
+      cost_center       : getValue(my_flat_data, "cost_center"),
       // Computed everytime tje tree is refreshed
       md                 : null,
       weight             : null,
@@ -449,6 +452,12 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_c
   }
   const children = node.children;
 
+  if ( parent_cost_center ) {
+    node.data.cost_center=parent_cost_center;
+  } else if ( !node.data.cost_center ) {
+    node.data.cost_center=node.data.cost_center_template;
+  }
+
   // COMPOSED node
   if ( node.data.isComposed /*children.length>0*/ ) {
     log_low_debug("With nodes");
@@ -503,7 +512,7 @@ function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_c
         }
 
         // Compute the costs 
-        var roles_costs=getCostsByCenter(roles, node.data.cost_center ? node.data.cost_center : parent_cost_center);
+        var roles_costs=getCostsByCenter(roles, node.data.cost_center);
         node.data.cost=getCost(my_effort, roles_costs);
 
         // But... this is not all!!!! Maybe we have defined some additional columns that
@@ -695,6 +704,27 @@ function export2CSVNode(jstree, node, list, level=0) {
       export2CSVNode(jstree, child_node, list, level+1);
     });
   }
+}
+
+// ---------------------------------------------------------------- Export Costs
+function exportCosts(map_roles) {
+  const centers=getAllCostCenters(map_roles);
+  var headers=['Rol', ...centers];
+
+  var list=[];
+  var costs_centers={};
+  centers.forEach(center => {
+    costs_centers[center]=getCostsByCenter(map_roles, center);
+  });
+  Object.keys(map_roles).forEach( rol => {
+    var item={'Rol' : rol};
+    centers.forEach(center => {
+      item[center]=costs_centers[center][rol];
+    });
+    list.push(item);
+  });
+
+  downloadCSV(list, headers, 'costs.csv');
 }
 
 // ----------------------------------------------------------------- Export JSON
