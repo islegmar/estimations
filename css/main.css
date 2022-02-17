@@ -127,15 +127,26 @@ table tbody tr.active-row {
     overflow:hidden;
 }
 */
+
 /*
-.jstree-grid-cell{
+.jstree-grid-cell {
   border:1px dotted black;
+}
+*/
+.jstree-grid-cell {
+  box-shadow: inset 1px 1px 1px 1px grey;
+  box-sizing: border-box;
+}
+/*
+.jstree-anchor{
+  border:2px dotted black;
 }
 .jstree-anchor {
   margin-top:1px;
   margin-bottom:1px;
 }
 */
+
 .number {
   text-align: right !important;
   overflow:visible !important;
