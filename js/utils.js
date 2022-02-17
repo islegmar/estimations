@@ -425,11 +425,11 @@ function convertArrayOfObjectsToCSV(data, keys, quote='"', columnDelimiter=',', 
   return result;
 }
 
-function downloadCSV(data, headers, filename='export.csv') {
-  downloadData(convertArrayOfObjectsToCSV(data, headers));
+function downloadCSV(data, headers, filename='export.csv', mimetype='application/csv') {
+  downloadData(convertArrayOfObjectsToCSV(data, headers), filename, mimetype);
 }
 
-function downloadData(data, filename='export.csv', mimetype='application/csv') {
+function downloadData(data, filename, mimetype) {
   if (data == null) return;
 
   /*

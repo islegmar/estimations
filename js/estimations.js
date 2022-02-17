@@ -407,7 +407,7 @@ function computeExpression(expr, fValue, ...args) {
  * Usually we only work with one
  */
 function getAllCostCenters(map_roles) {
-  var centers=[''];
+  var centers=['', 'default'];
 
   for(const rol in map_roles ) {
     const item=map_roles[rol];

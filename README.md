@@ -354,5 +354,7 @@ TBD
 - DONE : Import the exported JSON (that is NOT the same as the original flat_data)
 - DONE : When exporting in CSV configure in config the fields to be exported and their order => convert roles in an array so the order is kept
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)
-- Support for several pricing. The same role names can have an attribute with different cost.
+- DONE : Support for several pricing. The same role names can have an attribute with different cost.
 - Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.
+- Refactor the JS code to support modules
+- Clone tasks (and sub-tasks)

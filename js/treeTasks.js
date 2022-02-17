@@ -10,11 +10,11 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   // ---- Columns to be shown for every row
   var columns=[
     {header: "Name" },
-    {header: "Cost", "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
-    {header: "O. CostCenter", "columnClass" : "costCenter", value : "cost_center" },
-    {header: "CostCenter", "columnClass" : "costCenter", value : "final_cost_center" },
-    {header: "O. Weight", "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }},
-    {header: "Weight", "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
+    {header: "Cost"         , "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
+    {header: "O. CostCenter", "columnClass" : "oCostCenter", value : "cost_center", "_hidden" : true },
+    {header: "CostCenter"   , "columnClass" : "costCenter", value : "final_cost_center" },
+    {header: "O. Weight"    , "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }, "_hidden": true},
+    {header: "Weight"       , "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
 
   for (const rol_name in roles){
@@ -22,6 +22,7 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
       header: rol_name, 
       "columnClass" : "rol_" + rol_name , 
       "wideCellClass" : "number", 
+      "_hidden" : roles[rol_name]["hidden"],
       value : function(node){ 
         return formatDataValue(node.data.md, rol_name); 
       }
@@ -34,11 +35,9 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
           header: col_name, 
           "columnClass" : "rol_" + col_name , 
           "wideCellClass" : "number", 
+          "_hidden" : item[col_name]["hidden"],
           value : function(node){ 
-            // Not use formatDataValue because some columns can be effort 
-            // and other costs, so when this field was calculated it was already
-            // taken into account the type of data so the proper formatted was applied
-            return getValue(node.data.additional_columns, col_name);
+            return formatDataValue(node.data.additional_columns, col_name, item[col_name]["isCost"] ? formatterCost : formatterDecimal); 
           }
         });
       }
@@ -46,7 +45,7 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
   }
   // TODO : not possible to show the assumptions as a list
   columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes_computed + node.data.notes_template; }});
-  columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions"});
+  columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions", "_hidden" : true});
 
   // Show the checkboxes to show/hide columns in the tree
   if ( $p_col_selector ) {
@@ -70,7 +69,6 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
 
         eCb.addEventListener('change', function(event) {
           var ele=event.currentTarget;
-          // TODO : remove all jquery
           if ( ele.checked ) {
             ele.custom_container.find("." + ele.custom_class).show();
             ele.custom_container.find("." + ele.custom_class).children().show();
@@ -160,13 +158,15 @@ function createJSTree($container_parent, $container, $search, tree_data, d_flat,
     jstree.redraw(true);
   });
   
+  // Uncheck the columns that are marked as hidden in the configuration
+  // Later we can change its visibility clicking in the corresponding checkbox
   $container.on("loaded.jstree", function (e, data) {
     if ( $p_col_selector ) {
-      for (const rol in roles) {
-        if ( roles[rol].hasOwnProperty("hidden") && roles[rol]["hidden"] ) {
-          $p_col_selector.find("input[name='" + rol + "']").click();
+      columns.forEach(item => {
+        if ( item._hidden ) {
+          $p_col_selector.find("input[name='" + item.header + "']").click();
         }
-      }
+      });
     }
   });
   // Recalculate the efforts
