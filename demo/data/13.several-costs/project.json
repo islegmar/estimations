@@ -1,0 +1,16 @@
+{
+  "My Project" : { 
+    "tasks" : [ 
+      "Empty",
+      "Default",
+      "Cheap",
+      "Expensive"
+    ]
+  },
+  "Empty"     : { "tasks" : [ "Task1", "Task2" ] },
+  "Default"   : { "tasks" : [ "Task1", "Task2" ] },
+  "Cheap"     : { "cost_center" : "cheap",     "tasks" : [ "Task1", "Task2" ] },
+  "Expensive" : { "cost_center" : "expensive", "tasks" : [ "Task1", "Task2" ] },
+  "Task1" : { "PO" : 1, "A"  : 1.5 },
+  "Task2" : { "PO" : 2, "BE" : 10, "FE" : 5 }
+}

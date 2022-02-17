@@ -455,12 +455,11 @@ function getValue(data, prop, def="") {
 function listOfMaps2Map(listMaps) {
   var map={};
 
-  for(var ind in listMaps) {
-    var item=listMaps[ind];
+  listMaps.forEach(item => {
     for(const k in item ) {
       map[k]=item[k];
     }
-  }
+  });
 
   return map;
 }

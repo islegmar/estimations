@@ -207,6 +207,9 @@ Here you can see [the final file](demo/data/11.additional-columns/project.json) 
 
 [demo](index.html?log_level=low_debug&roles=demo/data/12.project-import/roles.json&estimations=demo/data/12.project-import/estimations.json&config=demo/data/12.project-import/config.json&project=demo/data/12.project-import/project.json)
 
+#### Several Costs
+Here you can see [the final file](demo/data/13.several-costs/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/13.several-costs/roles.json&estimations=demo/data/13.several-costs/project.json&config=demo/data/13.several-costs/config.json)
+
 ## Using the sandbox
 
 TBD
@@ -351,3 +354,5 @@ TBD
 - DONE : Import the exported JSON (that is NOT the same as the original flat_data)
 - DONE : When exporting in CSV configure in config the fields to be exported and their order => convert roles in an array so the order is kept
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)
+- Support for several pricing. The same role names can have an attribute with different cost.
+- Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.

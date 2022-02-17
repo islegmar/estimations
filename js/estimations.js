@@ -300,33 +300,38 @@ function getEffortAsList(data) {
 
 // ---- Utilities
 /**
- * Utility : given 2 efforts, each of them representing the effort for different roles, 
- * return the sum of both.
+ * Utility : given 2 maps with numbers (eg. efforts), return the sum
  */
-function sumEffort(eff1, eff2, weight) {
-  const ret = cloneJSON(eff1);
+function sumMaps(map1, map2) {
+  const ret = cloneJSON(map1);
 
-  for (const k in eff2 ) {
+  for (const k in map2 ) {
     if ( !(ret.hasOwnProperty(k)) ){
       ret[k]=0.0;
     }
-    ret[k]+=eff2[k]*weight;
+    ret[k]+=map2[k];
   }
 
   return ret;
+}
+
+function updateMap(curr_values, new_values) {
+  for (const k in new_values ) {
+    if ( !curr_values[k] ) {
+      curr_values[k]=0;
+    }
+    curr_values[k]+=new_values[k];
+  }
 }
 
 /**
  * Given a map of roles and MD (mds) and the costs for every rol (roles) compute
  * the total cost.
  */
-function getCost(mds, roles) {
+function getCost(mds, roles_costs) {
   var cost=0.0;
   for(var rol in mds ) {
-    // Some roles do NOT have attr. "cost" because they are calculated fields
-    if ( roles.hasOwnProperty(rol) && roles[rol].hasOwnProperty("cost") ) {
-      cost += mds[rol] * 8.0 * roles[rol]["cost"];
-    }
+    cost += mds[rol] * 8.0 * roles_costs[rol];
   }
 
   return cost;
@@ -358,11 +363,11 @@ function computeExpressionEffort(expr, effort, roles) {
 /**
  * Same as above but using costs
  */
-function computeExpressionCost(expr, effort, roles) {
+function computeExpressionCost(expr, effort, roles_costs) {
   if ( !effort ) return "";
 
-  for (const rol in roles ) {
-    expr=expr.replaceAll("{" + rol + "}", effort.hasOwnProperty(rol) && roles[rol].hasOwnProperty("cost") ? effort[rol] * 8.0 * roles[rol]["cost"] : "0");
+  for (const rol in roles_costs ) {
+    expr=expr.replaceAll("{" + rol + "}", effort.hasOwnProperty(rol) ? effort[rol] * 8.0 * roles_costs[rol] : "0");
   }
   return eval(expr);
 }
@@ -395,4 +400,42 @@ function computeExpression(expr, fValue, ...args) {
   }
 
   return eval(my_expr);
+}
+
+/**
+ * Give all the cost centers defined in the roles.
+ * Usually we only work with one
+ */
+function getAllCostCenters(map_roles) {
+  var centers=[''];
+
+  for(const rol in map_roles ) {
+    const item=map_roles[rol];
+    if ( item.hasOwnProperty("centers") ) {
+      for(const center in item.centers ) {
+        if ( !centers.includes(center) ) {
+          centers.push(center);
+        }
+      }
+    }
+  }
+
+  return centers;
+}
+
+/**
+ * Give the costs for a certer. If not defined for a rol, use the default.
+ */
+function getCostsByCenter(map_roles, center, use_default=true) {
+  var costs={};
+
+  for (const rol in map_roles) {
+    if ( map_roles[rol].hasOwnProperty("centers") && map_roles[rol].centers[center] ) {
+      costs[rol]=map_roles[rol].centers[center];
+    } else if ( use_default ) {
+      costs[rol]=map_roles[rol].cost;
+    }
+  }
+
+  return costs;
 }
