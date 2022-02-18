@@ -34,3 +34,13 @@ export function date2Str(dt) {
     (dt.getMonth() + 1).toString().padStart(2, "0") + "/" + 
     dt.getFullYear();
 }
+
+export function getTotWorkingDays(list) {
+  var tot=0;
+
+  list.forEach(dt => {
+    if ( !isWeekend(dt) ) ++tot;
+  });
+
+  return tot;
+}

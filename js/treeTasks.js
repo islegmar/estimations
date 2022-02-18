@@ -198,8 +198,7 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
     document.dispatchEvent(new CustomEvent("custom.planning.refresh", {
       detail : {
         jstree    : jstree, 
-        ePlanning : document.getElementById('planning'),
-        eGantt    : document.getElementById('gantt')
+        container : document.getElementById('tab_planning')
       }
     }));
   });

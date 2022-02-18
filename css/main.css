@@ -204,6 +204,9 @@ table tbody tr.active-row {
   background-color: black;
   opacity: 0.1;
 }
+.planning .working {
+  background-color:green;
+}
 .planning .level_1 { opacity: 1.0; }
 .planning .level_2 { opacity: 0.8; }
 .planning .level_3 { opacity: 0.6; }
