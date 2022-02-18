@@ -1,0 +1,14 @@
+{
+  "Project" : { "tasks" : ["Definition", "Development"] },
+  "Definition" : { "tasks" : ["Workshops"], "start_date" : "18/02/2022", "end_date" : "30/04/2022" },
+  "Development" : { 
+    "tasks" : [
+      { "name" : "STD Plugin", "description" : "Dev#1" },
+      { "name" : "STD Plugin", "description" : "Dev#2", "weight" : 2.0 }
+    ],
+    "start_date" : "01/04/2022", 
+    "end_date"   : "31/08/2022" 
+  },
+  "STD Plugin" : { "duration" : 5, "BE" : 1, "FE" : 0.5},
+  "Workshops"  : { "duration" : 5, "PO" : 1, "A" : 1.0, "BE" : 0.25 }
+}

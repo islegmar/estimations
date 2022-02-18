@@ -24,7 +24,7 @@
   <script src="js/log.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/estimations.js"></script>
-  <script src="js/treeTasks.js"></script>
+  <script type="module" src="js/main.js"></script>
 
   <!-- External -->
   <!--
@@ -58,18 +58,30 @@
 </head>
 
 <body>
-<h1 id="title">Estimations</h1>
-
-<div id="col_selector" class="collapsable collapsed">
-  <h3 class="header">Columns</h3>
-  <div class="content">
+<div class="tabs">
+  <ul>
+    <li><a href="#tab_estimations">Estimations</a></li>
+    <li><a href="#tab_planning">Planning</a></li>
+  </ul>
+  <div id="tab_estimations">
+    <div id="col_selector" class="collapsable collapsed">
+      <h3 class="header">Columns</h3>
+      <div class="content">
+      </div>
+    </div>
+    <div id="pSearchTree" style="display:none;">
+      <label>Seach in the tree : </label>
+      <input id="bTreeSearch" type="text" value="" class="input search"/>
+    </div>
+    <div id="tree_tasks" style="zoom:1.0">
+    </div>
   </div>
-</div>
-<div id="pSearchTree" style="display:none;">
-  <label>Seach in the tree : </label>
-  <input id="bTreeSearch" type="text" value="" class="input search"/>
-</div>
-<div id="tree_tasks" style="zoom:1.0">
+  <div id="tab_planning">
+    <h2>Gantt</h2>
+    <div id="gantt"    class="table planning"></div>
+    <h2>FTEs</h2>
+    <div id="planning" class="table planning"></div>
+  </div>
 </div>
 
 <p>
@@ -79,6 +91,7 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
 <button id="bExportCSV">Export CSV</button>&nbsp;
 <button id="bExportJSON">Export JSON</button>&nbsp;
 <button id="bExportCosts">Export Costs</button>&nbsp;
+<button id="bExportPlanning">Export Planning</button>&nbsp;
 
 <div id="select_activity" class="modal">
   <b>Chose a Task to add</b>
@@ -89,25 +102,35 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
   <button>Accept</button>
 </div>
 
-<div id="edit_node" class="modal">
+<div id="edit_node" class="modal table">
   <div class="description">
-    <label>Description : </label>
+    <label>Description</label>
     <input name="description" type="text"></input>
   </div>
   <div class="weight">
-    <label>Weight : </label>
+    <label>Weight</label>
     <input name="weight" type="text" value="1.0"></input>
   </div>
   <div class="duration">
-    <label>Duration : </label>
+    <label>Duration</label>
     <input name="duration" type="text" value="1.0"></input>
   </div>
   <div class="cost_center">
-    <label>Cost Center : </label>
+    <label>Cost Center</label>
     <select name="cost_center">
     </select>
   </div>
-  <button>Update</button>
+  <div class="start_date">
+    <label>Start Date</label>
+    <input name="start_date" type="text"></input>
+  </div>
+  <div class="end_date">
+    <label>End Date</label>
+    <input name="end_date" type="text"></input>
+  </div>
+  <div>
+    <button>Update</button>
+  </div>
 </div>
 
 <div id="new_task" class="modal">
@@ -125,7 +148,7 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
     <p>
       Load here your files. Some files have been uploaded with some sample files (config, roles, types) but you can upload your own files and overwrite them.
     </p>
-    <div id="tabs">
+    <div class="tabs">
       <ul>
         <li><a href="#load_estimations">Estimations</a></li>
           <li><a href="#load_config">Config</a></li>
@@ -167,229 +190,4 @@ Please load in <b>Data</b> your files and click the Render button to see the tre
   </div>
 </div>
 </body>
-<script>
-
-// ------------------------------------------------------------------- Functions
-/**
- * Save JSON in local storage and put the JSON in a container so we can take a look (debug).
- * The data can represe nt an object (usually this is the case) or an arrya (roles).
- * If if is an object:
- *   - Remove comments
- *   - Load _includes
- * If it is an array, just store it.
- * The data can 
- */
-function saveData(container, name, new_data, callback) {
-  log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
-  if ( new_data ) {
-    if ( Array.isArray(new_data) ) {
-      lsSetJSON(name, new_data);
-    } else {
-      removeCommentsFromJSON(new_data);
-      
-      var data=lsGetJSON(name);
-      if ( !data ) {
-        log_low_debug("New data ....");
-        data={};
-      } else {
-        log_low_debug("Updating ....");
-      }
-      extendsJSON(data, new_data);
-
-      // Ok for the especial case of estimations we have to keep the original 
-      // so we can later can compute the root node
-      /*
-      if ( name==="estimations" ) {
-        lsSetJSON(name + "_original", data);
-      }
-      */
-      loadExternal(data, upd_data => {
-        container.querySelector(".content").innerHTML='';
-        container.querySelector(".content").appendChild(renderjson.set_show_to_level('all')(data));
-        lsSetJSON(name, data);
-        if ( callback ) {
-          callback(upd_data);
-        }
-      }, getURLParam("baseDataURL"));
-    }
-  } else {
-    lsDelJSON(name);
-  }
-}
-
-
-/**
- * Set the listener that will allow to upload JSON with data
- */
-function setListenerUploadJSON(container, name, url, url_prefix) {
-  container.querySelector("input").addEventListener('change', function(e) {
-    loadLocalFiles(
-      e.target.files, 
-      // Secuencial process of the files uploaded. In some cases we allow upload
-      // several files. like with the estimations
-      (file, txt_result) => {
-        saveData(container, name, JSON.parse(txt_result));
-      },
-      tot => {
-        log_low_debug("Processed : " + tot + " files");
-      }
-    );
-  });
-}
-
-/**
- * Generates the tree
- */ 
-function generatesTree() {
-  // TODO : redo this show part, ugly
-  //        It should managed by treeTask
-  $("#pSearchTree").show();
-
-  // TODO : not like this code for getting the root node. The fact
-  //        normalize needs all the data to work ...
-
-  const config=lsGetJSON('config');
-  const roles=lsGetJSON('roles');
-  const typeActivities=lsGetJSON('types');
-  var   estimations=lsGetJSON('estimations');
-  const project=lsGetJSON('project');
-
-  // TODO : unify
-  if ( project ) {
-    // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
-    $("#tree_tasks").empty();
-    $("#tree_tasks").append("<div class='content'></div>");
-    createJSTree(
-      $('#tree_tasks'), 
-      $('#tree_tasks .content'), 
-      $('#bTreeSearch'), 
-      project,
-      estimations, 
-      roles, 
-      typeActivities, 
-      config, 
-      null, 
-      $('#select_activity'),
-      $('#edit_node'),
-      $('#new_task'),
-      $('#col_selector')
-    );
-  } else {
-    if ( config && roles && typeActivities && estimations ) {
-      estimations=getFlatDataNormalized(
-        estimations,
-        roles,
-        typeActivities, 
-        config
-      );
-
-      // Ok we need to do a "trick" to get the root node
-      // const estimations_original=lsGetJSON("estimations_original");
-      // const my_roots=getRootNodes(estimations).filter( k=> estimations_original.hasOwnProperty(k));
-      // const root = my_roots.length==1 ? my_roots[0] : null;
-      const root=getURLParam("root", null);
-
-
-      // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
-      $("#tree_tasks").empty();
-      $("#tree_tasks").append("<div class='content'></div>");
-      createJSTree(
-        $('#tree_tasks'), 
-        $('#tree_tasks .content'), 
-        $('#bTreeSearch'), 
-        null,
-        estimations, 
-        roles, 
-        typeActivities, 
-        config, 
-        root, 
-        $('#select_activity'),
-        $('#edit_node'),
-        $('#new_task'),
-        $('#col_selector')
-      );
-    }
-  }
-}
-
-
-// ------------------------------------------------------------------- Listeners
-
-document.getElementById('bRender').addEventListener('click', function(){
-  generatesTree();
-});
-
-// ------------------------------------------------------------------------ Main
-collapsable(document);
-
-$( function() {
-  $( "#tabs" ).tabs();
-});
-
-// Cleanup
-lsDelJSON('config');
-lsDelJSON('roles');
-lsDelJSON('types');
-lsDelJSON('project');
-lsDelJSON('estimations');
-
-// Get the data in order. Maybe some data is not specified
-var container=null;
-fetchJSONFile(getURLParam("config"), function(config) {
-  container=document.getElementById('load_config');
-  setListenerUploadJSON(container, 'config');
-  if ( !config ) config = {};
-  saveData(container, 'config', config);
-
-  fetchJSONFile(getURLParam("roles"), function(roles) {
-    container=document.getElementById('load_roles');
-    setListenerUploadJSON(container, 'roles');
-    if ( !roles ) roles = [];
-    saveData(container, 'roles', roles);
-
-    fetchJSONFile(getURLParam("types"), function(typeActivities) {
-      container=document.getElementById('load_types');
-      setListenerUploadJSON(container, 'types');
-      if ( !typeActivities ) typeActivities = {};
-      saveData(container, 'types', typeActivities);
-
-      fetchJSONFile(getURLParam("project"), function(project) {
-        container=document.getElementById('load_project');
-        setListenerUploadJSON(container, 'project');
-        if ( !project ) project = null;
-        saveData(container, 'project', project);
-
-        fetchJSONFile(getURLParam("estimations"), function(estimations) {
-          container=document.getElementById('load_estimations');
-          setListenerUploadJSON(container, 'estimations');
-          // In estimations because it can have includes, we need a callback to 
-          // render when all the data has been loaded
-          if ( estimations ) {
-            saveData(container, 'estimations', estimations, function() {
-              generatesTree();
-            });
-          }
-        });
-      });
-    });
-  });
-});
-
-/*
-document.querySelector("#bImportJSON").addEventListener('change', function(e) {
-  loadLocalFiles(
-    e.target.files, 
-    // Secuencial process of the files uploaded. In some cases we allow upload
-    // several files. like with the estimations
-    (file, txt_result) => {
-      alert("name : " + name + ", json : " + JSON.parse(txt_result));
-    },
-    tot => {
-      log_low_debug("Processed : " + tot + " files");
-    }
-  );
-});
-*/
-
-</script>
 </html>

@@ -408,7 +408,13 @@ function convertArrayOfObjectsToCSV(data, keys, quote='"', columnDelimiter=',', 
   }
 
   result = '';
-  result += keys.join(columnDelimiter);
+
+  ctr = 0;
+  keys.forEach(key => {
+    if (ctr > 0) result += columnDelimiter;
+    result += quote + (key) + quote;
+    ctr++;
+  });
   result += lineDelimiter;
 
   data.forEach(function(item) {

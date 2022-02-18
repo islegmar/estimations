@@ -161,3 +161,53 @@ table tbody tr.active-row {
 #edit_node:not(.composed) div.duration {
   display:none;
 }
+
+.table {
+  display:table;
+}
+
+.table > * {
+  display:table-row;
+}
+
+.table > * > * {
+  display:table-cell;
+  margin:5px;
+}
+
+.planning {
+  margin:20px;
+}
+
+.planning > * > * {
+  border:1px solid black;
+  min-width:60px;
+}
+
+.planning > * > *:not:first-child {
+  max-width:60px;
+  padding:2px;
+}
+
+.planning > *:first-child, .planning > * > *:first-child  {
+  background-color: grey;
+  font-weight: bold;
+}
+
+.planning > *:not:first-child > *:not:first-child  {
+  text-align:right;
+}
+
+.planning > *:first-child > *, .planning > * > *:first-child  {
+  text-align:center;
+}
+
+.planning .busy {
+  background-color: black;
+  opacity: 0.1;
+}
+.planning .level_1 { opacity: 1.0; }
+.planning .level_2 { opacity: 0.8; }
+.planning .level_3 { opacity: 0.6; }
+.planning .level_4 { opacity: 0.4; }
+.planning .level_5 { opacity: 0.2; }

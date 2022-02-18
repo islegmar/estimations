@@ -210,6 +210,9 @@ Here you can see [the final file](demo/data/11.additional-columns/project.json) 
 #### Several Costs
 Here you can see [the final file](demo/data/13.several-costs/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/13.several-costs/roles.json&estimations=demo/data/13.several-costs/project.json&config=demo/data/13.several-costs/config.json)
 
+#### Planning
+Here you can see [the final file](demo/data/14.planning/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/14.planning/roles.json&estimations=demo/data/14.planning/project.json)
+
 ## Using the sandbox
 
 TBD
@@ -358,3 +361,5 @@ TBD
 - Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.
 - Refactor the JS code to support modules
 - Clone tasks (and sub-tasks)
+- Bug : search stop working
+- When exporting CSV, add a column if there is a warning.
