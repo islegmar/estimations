@@ -182,24 +182,22 @@ table tbody tr.active-row {
 .planning > * > * {
   border:1px solid black;
   min-width:60px;
+  padding:2px;
 }
 
 .planning > * > *:not:first-child {
   max-width:60px;
-  padding:2px;
 }
 
+/* First row (header) and First column (concepts) */
 .planning > *:first-child, .planning > * > *:first-child  {
   background-color: grey;
   font-weight: bold;
-}
-
-.planning > *:not:first-child > *:not:first-child  {
-  text-align:right;
-}
-
-.planning > *:first-child > *, .planning > * > *:first-child  {
   text-align:center;
+}
+
+.planning > *:not(:first-child) > *:not(:first-child) {
+  text-align:right;
 }
 
 .planning .busy {

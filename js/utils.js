@@ -470,6 +470,20 @@ function listOfMaps2Map(listMaps) {
   return map;
 }
 
+/**
+ * Return a map where the list elements are grouped.
+ */
+function groupListElements(list, fKey) {
+  var groups={};
+  list.forEach(ele => {
+    const key=fKey(ele);
+    if ( !groups[key] ) groups[key]=[];
+    groups[key].push(ele);
+  });
+
+  return groups;
+}
+
 /*
 downloadCSV(
   [ 

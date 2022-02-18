@@ -11,34 +11,9 @@ export function getListDates(d_start, d_end) {
   return list;
 }
 
-export function groupByMonth(list, fKey, skipWeekend=true) {
-  var months={};
-  list.forEach(dt => {
-    var dayOfWeek = dt.getDay();
-    if ( !skipWeekend || (dayOfWeek !== 6) && (dayOfWeek !== 0) ) {
-      const key=fKey(dt);
-      if ( !months[key] ) months[key]=[];
-      months[key].push(dt);
-    }
-  });
-
-  return months;
-}
-
-/**
- * Return a list of periods build from the dates in list.
- * If the dates in list are ordered, the periods will be ordered too.
- */ 
-export function getListPeriods(list, fKey) {
-  var periods=[];
-  list.forEach(dt => {
-    const period=fKey(dt);
-    if ( !periods.includes(period) ) {
-      periods.push(period);
-    }
-  });
-
-  return periods;
+export function isWeekend(dt) {
+  var dayOfWeek = dt.getDay();
+  return (dayOfWeek === 6) || (dayOfWeek === 0);
 }
 
 /**
