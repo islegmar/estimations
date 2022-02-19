@@ -2,7 +2,7 @@ import * as Log from '../lib/log.js';
 import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal, extendsJSON } from '../lib/utils.js';
 
 import { buildFormEditNode, showFormEditNode, buildFormNewTask } from './forms.js';
-import { getJsTreeData, getTreeNodeData, getNodeMDAndUpdate, updateTreeData, cleanMDTreeNode } from './node.js';
+import { getJsTreeData, getTreeNodeData, updateTreeData } from './node.js';
 import { export2CSVTree, export2JSONTree, exportCosts, exportPlanning } from './exports.js';
 import { getFlatDataNormalized } from './estimations.js';
 
@@ -66,7 +66,6 @@ export function getConfiguration(name) {
   }
 }
 
-//
 /**
  * Create the object jstree
  */
@@ -80,8 +79,8 @@ export function createJSTree($container_parent, $container, $search, root_node, 
   var columns=[
     {header: "Name" },
     {header: "Cost"         , "columnClass" : "cost", "wideCellClass" : "number", value : function(node){ return formatDataValue(node.data, "cost", formatterCost);}},
-    {header: "O. CostCenter", "columnClass" : "oCostCenter", value : "cost_center", "_hidden" : true },
-    {header: "CostCenter"   , "columnClass" : "costCenter", value : "final_cost_center" },
+    {header: "O. CostCenter", "columnClass" : "oCostCenter", value : "my_cost_center", "_hidden" : true },
+    {header: "CostCenter"   , "columnClass" : "costCenter", value : "cost_center" },
     {header: "O. Weight"    , "columnClass" : "oWeight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "my_weight"); }, "_hidden": true},
     {header: "Weight"       , "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
@@ -113,13 +112,17 @@ export function createJSTree($container_parent, $container, $search, root_node, 
     });
   }
   // TODO : not possible to show the assumptions as a list
-  columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes_computed + node.data.notes_template; }});
+  columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes; }});
   columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions", "_hidden" : true});
 
   columns.push({header: "My Start Date", "columnClass" : "my_start_date", value : "my_start_date", "_hidden" : true});
   columns.push({header: "My End Date", "columnClass" : "my_end_date", value : "my_end_date", "_hidden" : true});
   columns.push({header: "Start Date", "columnClass" : "start_date", value : "start_date", "_hidden" : false});
   columns.push({header: "End Date", "columnClass" : "end_date", value : "end_date", "_hidden" : false});
+
+  columns.push({header: "Duration Template", "columnClass" : "duration_template", value : "duration_template", "_hidden" : true});
+  columns.push({header: "My Duration"      , "columnClass" : "my_duration"      , value : "my_duration"      , "_hidden" : true});
+  columns.push({header: "Duration"         , "columnClass" : "duration"         , value : "duration"         , "_hidden" : true});
 
   // Show the checkboxes to show/hide columns in the tree
   if ( $p_col_selector ) {
