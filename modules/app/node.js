@@ -3,6 +3,8 @@ import { getValue, daysHuman2Number, daysNumber2Human, round } from '../lib/util
 
 import { getRootNodes, getCost, getCostsByCenter, sumMaps, updateMap, computeExpressionEffort, computeExpressionCost } from './estimations.js';
 // ------------------------------------------------------------------- tree_data
+// d_flat_data => templates_normalized
+
 /**
  * Convert the flat data (templates) in a tree data that can be rendered.
  * @param root_node if specified we want to render only from the several roots

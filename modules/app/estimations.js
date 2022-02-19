@@ -46,6 +46,8 @@ import { cloneJSON, listOfMaps2Map } from '../lib/utils.js';
  * Return flat_data with all their items normalized
  */
 export function getFlatDataNormalized(data, list_roles, type_activities, config) {
+  if ( !list_roles ) return null;
+
   var roles=listOfMaps2Map(list_roles);
   var new_data={};
   for (const key in data ) {

@@ -1,32 +1,80 @@
 import * as Log from '../lib/log.js';
-import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal } from '../lib/utils.js';
-import { 
-  buildFormEditNode,
-  showFormEditNode,
-  buildFormNewTask
-} from './forms.js';
-import { 
-  getJsTreeData,
-  getTreeNodeData,
-  getNodeMDAndUpdate,
-  updateTreeData,
-  cleanMDTreeNode
-} from './node.js';
-import { 
-  export2CSVTree,
-  export2JSONTree,
-  exportCosts,
-  exportPlanning
-} from './exports.js';
+import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal, extendsJSON } from '../lib/utils.js';
+
+import { buildFormEditNode, showFormEditNode, buildFormNewTask } from './forms.js';
+import { getJsTreeData, getTreeNodeData, getNodeMDAndUpdate, updateTreeData, cleanMDTreeNode } from './node.js';
+import { export2CSVTree, export2JSONTree, exportCosts, exportPlanning } from './exports.js';
+import { getFlatDataNormalized } from './estimations.js';
 
 // grid : https://everyething.com/example-of-deitch-jsTree-grid
+
+// Original data, coming from the JSONs
+var config={};
+var typeActivities={};
+var templates={};  // templates (aka. estimations) are NOT normalized, comind directly from the JSON
+var list_roles=[]; 
+// the project as exported tree. 
+// TODO: Not sure this should be managed as a config instead an argument in the creator but now it is easier taht way
+var project=null; 
+
+// Derived data
+var templates_normalized=null; 
+
+/**
+ * Update the tree data confuration
+ */
+export function updateConfiguration(name, data) {
+  if ( name === "config" ) {
+    config=data;
+  } else if ( name === "roles" ) {
+    list_roles=data;
+  } else if ( name === "types" ) {
+    typeActivities=data;
+  } else if ( name === "estimations" ) {
+    if ( !templates ) templates={};
+    extendsJSON(templates, data);
+  } else if ( name === "project" ) {
+    project=data;
+  } else {
+    throw new Error("Unnamenown configuration '" + name + "'");
+  }
+  // TODO: not sure if it is the best way but ....
+  // Every time something changes, normalize the estimations
+  if ( name !== "project" ) {
+    templates_normalized=getFlatDataNormalized(
+      templates,
+      list_roles,
+      typeActivities, 
+      config
+    );
+  }
+}
+
+export function getConfiguration(name) {
+  if ( name === "config" ) {
+    return config;
+  } else if ( name === "roles" ) {
+    return list_roles;
+  } else if ( name === "types" ) {
+    return typeActivities;
+  } else if ( name === "estimations" ) {
+    return templates;
+  } else if ( name === "project" ) {
+    return project;
+  } else {
+    throw new Error("Unnamenown configuration '" + name + "'");
+  }
+}
+
 //
 /**
  * Create the object jstree
  */
-export function createJSTree($container_parent, $container, $search, tree_data, d_flat, list_roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
-  var roles=listOfMaps2Map(list_roles);
-  const d_tree = tree_data ? tree_data[0] : getJsTreeData(d_flat, root_node);
+export function createJSTree($container_parent, $container, $search, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
+  if ( !templates_normalized ) return;
+
+  const d_tree = project ? project[0] : getJsTreeData(templates_normalized, root_node);
+  var map_roles=listOfMaps2Map(list_roles);
 
   // ---- Columns to be shown for every row
   var columns=[
@@ -38,12 +86,12 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
     {header: "Weight"       , "columnClass" : "weight", "wideCellClass" : "number", value: function(node){ return formatDataValue(node.data, "weight"); }}
   ];
 
-  for (const rol_name in roles){
+  for (const rol_name in map_roles){
     columns.push({
       header: rol_name, 
       "columnClass" : "rol_" + rol_name , 
       "wideCellClass" : "number", 
-      "_hidden" : roles[rol_name]["hidden"],
+      "_hidden" : map_roles[rol_name]["hidden"],
       value : function(node){ 
         return formatDataValue(node.data.md, rol_name); 
       }
@@ -194,7 +242,7 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
   });
   $container.on("custom.refresh", function (e, data) {
     const jstree=$container.jstree(true);
-    updateTreeData(jstree, d_flat, roles, config);
+    updateTreeData(jstree, templates_normalized, map_roles, config);
     jstree.redraw(true);
     document.dispatchEvent(new CustomEvent("custom.planning.refresh", {
       detail : {
@@ -245,8 +293,8 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
         // Note: we do it every time because the list of taks can change
         const $pSel=$p_select_activity.find("select");
         $pSel.empty();
-        Object.keys(d_flat).sort().forEach(key => {
-          const type = d_flat[key].hasOwnProperty("tasks") ? "Composed" : "Simple";
+        Object.keys(templates_normalized).sort().forEach(key => {
+          const type = templates_normalized[key].hasOwnProperty("tasks") ? "Composed" : "Simple";
           $pSel.append($("<option>").val(key).text(key + " - " + type));
         });
 
@@ -267,7 +315,7 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
       const activity=$p_select_activity.find("select").children("option:selected").val();
       Log.log_debug("Activity : " + activity);
 
-      const child = getTreeNodeData(activity, d_flat);
+      const child = getTreeNodeData(activity, templates_normalized);
       child.id=true;
       const jstree=$container.jstree(true);
       jstree.create_node( tree_node, child, "last"); 
@@ -279,10 +327,10 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
   }
 
   // Edit a node
-  buildFormEditNode($container, $p_edit_node, roles);
+  buildFormEditNode($container, $p_edit_node, map_roles);
   
   // New Task
-  buildFormNewTask($container, $p_new_task, d_flat);
+  buildFormNewTask($container, $p_new_task, templates_normalized);
 
   $('#bExportCSV').click(function(){
     var names=[];
@@ -304,16 +352,9 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
     export2JSONTree($container.jstree(true));
   });
   $('#bExportCosts').click(function(){
-    exportCosts(roles);
+    exportCosts(map_roles);
   });
   $('#bExportPlanning').click(function(){
     exportPlanning($container.jstree(true));
   });
 }
-
-/*
-function getAsList(){
-  return "<ul><li>One</li><li>Two</li></ul>";
-}
-*/
-
