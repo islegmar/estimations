@@ -9,7 +9,7 @@ import {
   getNodeMDAndUpdate,
   updateTreeData,
   cleanMDTreeNode
-} from './treeData.js';
+} from './node.js';
 import { 
   export2CSVTree,
   export2JSONTree,

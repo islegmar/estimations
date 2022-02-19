@@ -1,4 +1,4 @@
-import { getTreeNodeData } from './treeData.js';
+import { getTreeNodeData } from './node.js';
 
 // ------------------------------------------------------------------- Edit Node
 export function buildFormEditNode($container, $p_edit_node, roles) {

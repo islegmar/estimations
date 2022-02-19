@@ -1,5 +1,5 @@
 import { walk_tree } from './exports.js';
-import * as DateUtils from './dates.js';
+import * as DateUtils from '../lib/dates.js';
 
 document.addEventListener("custom.planning.refresh", function (evt) {
   const eContainer=evt.detail.container;
@@ -278,11 +278,11 @@ function showDetailByRol(eContainer, rol, jstree) {
 
           eCell.classList.add("working");
           eCell.innerHTML  = "";
+          eCell.innerHTML += "<b>Days : "     + formatString(my_info.period_days) + "</b><br/>";
+          eCell.innerHTML += "<b>Rol Days : " + formatString(my_info.rol_days)    + "</b><br/>";
           eCell.innerHTML += "Task : "     + formatString(my_info.task) + "<br/>";
-          eCell.innerHTML += "FTEs : "     + formatString(my_info.ftes) + "<br/>";
-          eCell.innerHTML += "Days : "     + formatString(my_info.period_days) + "<br/>";
-          eCell.innerHTML += "Rol Days : " + formatString(my_info.rol_days);
-        } else if ( item.periods[name] ) {
+          eCell.innerHTML += "FTEs : "     + formatString(my_info.ftes);
+        } else {
           eCell.classList.add("busy");
           eCell.classList.add("level_" + item.level);
         }
@@ -369,10 +369,10 @@ function showDetailByPeriod(eContainer, period, jstree) {
 
           eCell.classList.add("working");
           eCell.innerHTML  = "";
-          eCell.innerHTML += "Task : "     + formatString(my_info.task) + "<br/>";
-          eCell.innerHTML += "FTEs : "     + formatString(my_info.ftes) + "<br/>";
-          eCell.innerHTML += "Days : "     + formatString(my_info.period_days) + "<br/>";
-          eCell.innerHTML += "Rol Days : " + formatString(my_info.rol_days);
+          eCell.innerHTML += "<b>Task : "     + formatString(my_info.task)     + "</b><br/>";
+          eCell.innerHTML += "<b>FTEs : "     + formatString(my_info.ftes)     + "</b><br/>";
+          eCell.innerHTML += "<b>Rol Days : " + formatString(my_info.rol_days) + "</b><br/>";
+          eCell.innerHTML += "Days : "     + formatString(my_info.period_days);
         } else {
           eCell.classList.add("busy");
           eCell.classList.add("level_" + item.level);

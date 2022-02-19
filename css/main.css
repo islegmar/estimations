@@ -180,7 +180,7 @@ table tbody tr.active-row {
 }
 
 .planning > * > * {
-  border:1px solid black;
+  border:1px solid blue;
   min-width:60px;
   padding:2px;
 }
