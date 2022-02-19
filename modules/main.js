@@ -1,4 +1,8 @@
+import * as Log from './lib/log.js';
+import { collapsable, lsDelJSON, lsGetJSON, lsSetJSON, getURLParam, fetchJSONFile, extendsJSON, loadExternal, removeCommentsFromJSON  } from './lib/utils.js';
+
 import { createJSTree } from './app/tree.js';
+import { getFlatDataNormalized } from './app/estimations.js';
 
 // ------------------------------------------------------------------- Functions
 /**
@@ -11,7 +15,7 @@ import { createJSTree } from './app/tree.js';
  * The data can 
  */
 function saveData(container, name, new_data, callback) {
-  log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
+  Log.log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
   if ( new_data ) {
     if ( Array.isArray(new_data) ) {
       lsSetJSON(name, new_data);
@@ -20,10 +24,10 @@ function saveData(container, name, new_data, callback) {
       
       var data=lsGetJSON(name);
       if ( !data ) {
-        log_low_debug("New data ....");
+        Log.log_low_debug("New data ....");
         data={};
       } else {
-        log_low_debug("Updating ....");
+        Log.log_low_debug("Updating ....");
       }
       extendsJSON(data, new_data);
 
@@ -62,7 +66,7 @@ function setListenerUploadJSON(container, name, url, url_prefix) {
         saveData(container, name, JSON.parse(txt_result));
       },
       tot => {
-        log_low_debug("Processed : " + tot + " files");
+        Log.log_low_debug("Processed : " + tot + " files");
       }
     );
   });

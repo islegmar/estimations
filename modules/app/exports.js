@@ -1,5 +1,8 @@
+import { downloadCSV, downloadData } from '../lib/utils.js';
 import * as DateUtils from '../lib/dates.js';
+
 import { getPlanning } from './planning.js';
+import { getAllCostCenters, getCostsByCenter } from './estimations.js';
 
 // ------------------------------------------------------------------ Export CSV
 export function export2CSVTree(jstree, roles) {
@@ -8,9 +11,6 @@ export function export2CSVTree(jstree, roles) {
   jstree.get_node('#').children.forEach(id => {
     export2CSVNode(jstree, jstree.get_node(id), list);
   });
-
-  log("max_level : " + max_level);
-  log(JSON.stringify(list, null, 2));
 
   // Headers in order
   var headers=[];

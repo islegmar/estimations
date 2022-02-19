@@ -1,5 +1,8 @@
-import { walk_tree } from './exports.js';
 import * as DateUtils from '../lib/dates.js';
+import * as Log from '../lib/log.js';
+import { removeChildren, groupListElements, formatString } from '../lib/utils.js';
+
+import { walk_tree } from './exports.js';
 
 document.addEventListener("custom.planning.refresh", function (evt) {
   const eContainer=evt.detail.container;
@@ -166,8 +169,8 @@ export function getPlanning(jstree) {
       }
     }
   });
-  log_low_debug("start_date : " + start_date);
-  log_low_debug("end_date : " + end_date);
+  Log.log_low_debug("start_date : " + start_date);
+  Log.log_low_debug("end_date : " + end_date);
 
   // 2> Create the data structured as table so it can be exported as CSV and displayed
   // - Header : Rol + Periods (months)

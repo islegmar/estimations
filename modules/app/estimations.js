@@ -1,3 +1,5 @@
+import { cloneJSON, listOfMaps2Map } from '../lib/utils.js';
+
 // =============================================================================
 // Estimations
 //
@@ -42,7 +44,7 @@
 /**
  * Return flat_data with all their items normalized
  */
-function getFlatDataNormalized(data, list_roles, type_activities, config) {
+export function getFlatDataNormalized(data, list_roles, type_activities, config) {
   var roles=listOfMaps2Map(list_roles);
   var new_data={};
   for (const key in data ) {
@@ -57,7 +59,7 @@ function getFlatDataNormalized(data, list_roles, type_activities, config) {
  * - If it is Composed it would have "tasks" as an array of {}
  * - If it is Simple,it will have the field "effort" with the values in MD
  */
-function getFlatItemNormalized(item, roles, type_activities, config) {
+export function getFlatItemNormalized(item, roles, type_activities, config) {
   var data = cloneJSON(item);
 
   // Check the data we're going to check does not have some of the 
@@ -224,7 +226,7 @@ function getFlatItemNormalized(item, roles, type_activities, config) {
  * acummulated will be computed when showing the tree 
  */
 /*
-function setMD(d_flat_data, roles, type_activities, config) {
+export function setMD(d_flat_data, roles, type_activities, config) {
   for(const activity in d_flat_data) {
     var data = d_flat_data[activity];
     if ( !data.hasOwnProperty("tasks") ) {
@@ -244,7 +246,7 @@ function setMD(d_flat_data, roles, type_activities, config) {
  * Return a tree structure.
  * TODO : sure it can do it better but ...
  */ 
-function getRootNodes(d_flat) {
+export function getRootNodes(d_flat) {
   var roots=[];
 
   // Get all the tasks referenced as a child
@@ -277,7 +279,7 @@ function getRootNodes(d_flat) {
 /**
  * Given the struct with the estimations, return it as a list to be displayed.
  */
-function getEffortAsList(data) {
+export function getEffortAsList(data) {
   removeCommentsFromJSON(data);
   setEfforts(data);
 
@@ -302,7 +304,7 @@ function getEffortAsList(data) {
 /**
  * Utility : given 2 maps with numbers (eg. efforts), return the sum
  */
-function sumMaps(map1, map2) {
+export function sumMaps(map1, map2) {
   const ret = cloneJSON(map1);
 
   for (const k in map2 ) {
@@ -315,7 +317,7 @@ function sumMaps(map1, map2) {
   return ret;
 }
 
-function updateMap(curr_values, new_values) {
+export function updateMap(curr_values, new_values) {
   for (const k in new_values ) {
     if ( !curr_values[k] ) {
       curr_values[k]=0;
@@ -328,7 +330,7 @@ function updateMap(curr_values, new_values) {
  * Given a map of roles and MD (mds) and the costs for every rol (roles) compute
  * the total cost.
  */
-function getCost(mds, roles_costs) {
+export function getCost(mds, roles_costs) {
   var cost=0.0;
   for(var rol in mds ) {
     cost += mds[rol] * 8.0 * roles_costs[rol];
@@ -351,7 +353,7 @@ function getCost(mds, roles_costs) {
  * then the value is
  *   0.5*(3+1) = 0.5*4 = 2
  */
-function computeExpressionEffort(expr, effort, roles) {
+export function computeExpressionEffort(expr, effort, roles) {
   if ( !effort ) return "";
 
   for (const rol in roles ) {
@@ -363,7 +365,7 @@ function computeExpressionEffort(expr, effort, roles) {
 /**
  * Same as above but using costs
  */
-function computeExpressionCost(expr, effort, roles_costs) {
+export function computeExpressionCost(expr, effort, roles_costs) {
   if ( !effort ) return "";
 
   for (const rol in roles_costs ) {
@@ -375,7 +377,7 @@ function computeExpressionCost(expr, effort, roles_costs) {
 /**
  * If fValue===null, we use as value the ones in the maps.
  */ 
-function computeExpression(expr, fValue, ...args) {
+export function computeExpression(expr, fValue, ...args) {
   if ( log_is_low_debug() ) {
     log_low_debug("computeExpression(expr: '" + expr + "') with fValue " + fValue + " and data");
     args.forEach(item => {
@@ -406,7 +408,7 @@ function computeExpression(expr, fValue, ...args) {
  * Give all the cost centers defined in the roles.
  * Usually we only work with one
  */
-function getAllCostCenters(map_roles) {
+export function getAllCostCenters(map_roles) {
   var centers=['', 'default'];
 
   for(const rol in map_roles ) {
@@ -426,7 +428,7 @@ function getAllCostCenters(map_roles) {
 /**
  * Give the costs for a certer. If not defined for a rol, use the default.
  */
-function getCostsByCenter(map_roles, center, use_default=true) {
+export function getCostsByCenter(map_roles, center, use_default=true) {
   var costs={};
 
   for (const rol in map_roles) {
