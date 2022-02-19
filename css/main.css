@@ -158,10 +158,6 @@ table tbody tr.active-row {
   padding-left:5px;
 }
 
-#edit_node:not(.composed) div.duration {
-  display:none;
-}
-
 .table {
   display:table;
 }
@@ -212,3 +208,4 @@ table tbody tr.active-row {
 .planning .level_3 { opacity: 0.6; }
 .planning .level_4 { opacity: 0.4; }
 .planning .level_5 { opacity: 0.2; }
+

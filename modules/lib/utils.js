@@ -453,8 +453,8 @@ export function downloadData(data, filename, mimetype) {
   link.click();
 }
 
-export function getValue(data, prop, def="") {
-  return data && data.hasOwnProperty(prop) ? data[prop] : def;
+export function getValue(data, prop, def="", use_def_if_empty=false) {
+  return data && data.hasOwnProperty(prop) && (!use_def_if_empty || data[prop]) ? data[prop] : def;
 }
 
 /**

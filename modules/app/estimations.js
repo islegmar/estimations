@@ -1,5 +1,5 @@
 import * as Log from '../lib/log.js';
-import { cloneJSON, listOfMaps2Map } from '../lib/utils.js';
+import { cloneJSON, listOfMaps2Map, getValue, daysHuman2Number} from '../lib/utils.js';
 
 // =============================================================================
 // Estimations
@@ -73,6 +73,10 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
     }
   });
 
+  if ( data.hasOwnProperty("duration") ) {
+    data.duration = ["inherit", "pending"].includes(data.duration) ? data.duration : daysHuman2Number(data.duration);
+  } 
+
   // Composed : tasks
   if ( data.hasOwnProperty("tasks") ) {
     var tasks_normalized=[];
@@ -111,9 +115,9 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
     // - type
     // - duration
     // - size
-    var type_activity = data.hasOwnProperty("type") ? data.type : null;
-    const duration = data.hasOwnProperty("duration") ? data.duration : null;
-    const size = data.hasOwnProperty("size") ? data.size : null;
+    var type_activity = getValue(data, "type"    , null);
+    const duration    = getValue(data, "duration", null);
+    const size        = getValue(data, "size"    , null);
 
     // 2> Initial calculation of the MD
     // duration : the values is the factor
