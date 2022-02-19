@@ -1,32 +1,81 @@
 import * as Log from '../lib/log.js';
-import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal } from '../lib/utils.js';
-import { 
-  buildFormEditNode,
-  showFormEditNode,
-  buildFormNewTask
-} from './forms.js';
-import { 
-  getJsTreeData,
-  getTreeNodeData,
-  getNodeMDAndUpdate,
-  updateTreeData,
-  cleanMDTreeNode
-} from './node.js';
-import { 
-  export2CSVTree,
-  export2JSONTree,
-  exportCosts,
-  exportPlanning
-} from './exports.js';
+import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal, extendsJSON } from '../lib/utils.js';
+
+import { buildFormEditNode, showFormEditNode, buildFormNewTask } from './forms.js';
+import { getJsTreeData, getTreeNodeData, getNodeMDAndUpdate, updateTreeData, cleanMDTreeNode } from './node.js';
+import { export2CSVTree, export2JSONTree, exportCosts, exportPlanning } from './exports.js';
+import { getFlatDataNormalized } from './estimations.js';
 
 // grid : https://everyething.com/example-of-deitch-jsTree-grid
+
+// Original data, coming from the JSONs
+var config={};
+var typeActivities={};
+var templates={};  // templates (aka. estimations) no normalized, comind directly from the JSON
+var list_roles=[]; 
+// the project as exported tree. TODO: Not sure this should be managed as a config instead an argument in the creator but now it is easier taht way
+var project=null; 
+
+// Derived data
+var roles=null; // as a map (TODO: remove it)
+var d_flat=null; // templates normalized
+
+/**
+ * Update the tree data confuration
+ */
+export function updateConfiguration(name, data) {
+  if ( name === "config" ) {
+    extendsJSON(config, data);
+  } else if ( name === "roles" ) {
+    list_roles=data;
+    roles=listOfMaps2Map(list_roles);
+  } else if ( name === "types" ) {
+    extendsJSON(typeActivities, data);
+  } else if ( name === "estimations" ) {
+    if ( !templates ) templates={};
+    extendsJSON(templates, data);
+  } else if ( name === "project" ) {
+    project=data;
+  } else {
+    throw new Error("Unnamenown configuration '" + name + "'");
+  }
+  // TODO: not sure if it is the best way but ....
+  // Every time something changes, normalize the estimations
+  if ( name !== "project" ) {
+    d_flat=getFlatDataNormalized(
+      templates,
+      list_roles,
+      typeActivities, 
+      config
+    );
+  }
+}
+
+export function getConfiguration(name) {
+  if ( name === "config" ) {
+    return config;
+  } else if ( name === "roles" ) {
+    return list_roles;
+  } else if ( name === "types" ) {
+    return typeActivities;
+  } else if ( name === "estimations" ) {
+    return templates;
+  } else if ( name === "project" ) {
+    return project;
+  } else {
+    throw new Error("Unnamenown configuration '" + name + "'");
+  }
+}
+
 //
 /**
  * Create the object jstree
  */
-export function createJSTree($container_parent, $container, $search, tree_data, d_flat, list_roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
-  var roles=listOfMaps2Map(list_roles);
-  const d_tree = tree_data ? tree_data[0] : getJsTreeData(d_flat, root_node);
+// export function createJSTree($container_parent, $container, $search, tree_data, d_flat, list_roles, typeAcctivitites, config, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
+export function createJSTree($container_parent, $container, $search, root_node, $p_select_activity, $p_edit_node, $p_new_task, $p_col_selector) {
+  if ( !d_flat ) return;
+
+  const d_tree = project ? project[0] : getJsTreeData(d_flat, root_node);
 
   // ---- Columns to be shown for every row
   var columns=[
@@ -310,10 +359,3 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
     exportPlanning($container.jstree(true));
   });
 }
-
-/*
-function getAsList(){
-  return "<ul><li>One</li><li>Two</li></ul>";
-}
-*/
-
