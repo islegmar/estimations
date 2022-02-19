@@ -1,3 +1,4 @@
+import * as Log from '../lib/log.js';
 import { cloneJSON, listOfMaps2Map } from '../lib/utils.js';
 
 // =============================================================================
@@ -116,7 +117,7 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
     // duration : the values is the factor
     if ( duration ) {
       if ( duration === "inherit" || duration === "pending" ) {
-        log_is_low_debug() && log_low_debug("duration " + duration + " for " + JSON.stringify(item));
+        Log.log_is_low_debug() && Log.log_low_debug("duration " + duration + " for " + JSON.stringify(item));
         var my_notes=[];
         for(const rol in effort ) {
           my_notes.push(effort[rol] + "x" + rol);
@@ -219,28 +220,6 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
   return data;
 }
 
-// OLD
-/**
- * Compute the md using the effort
- * In this case we will calculate ONLY for the leaf nodes becuase the 
- * acummulated will be computed when showing the tree 
- */
-/*
-export function setMD(d_flat_data, roles, type_activities, config) {
-  for(const activity in d_flat_data) {
-    var data = d_flat_data[activity];
-    if ( !data.hasOwnProperty("tasks") ) {
-      const md_notes=computeMD(data.effort, roles, type_activities, config);
-      data.md=md_notes.md;
-      if ( !data.notes ) {
-        data.notes="";
-      }
-      data.notes+=md_notes.notes;
-    }
-  }
-}
-*/
-
 
 /**
  * Return a tree structure.
@@ -272,34 +251,7 @@ export function getRootNodes(d_flat) {
   return roots;
 }
 
-// ------------------------------------------------------------------- tree_data
-// All the methods can be found in js/html/treeTasks.js
-
 // ------------------------------------------------------------------- list_data
-/**
- * Given the struct with the estimations, return it as a list to be displayed.
- */
-export function getEffortAsList(data) {
-  removeCommentsFromJSON(data);
-  setEfforts(data);
-
-  var list = [];
-  for (const activity in data) {
-    var my_data=data[activity];
-    my_data["Activity"] = activity;
-    for(const rol in data[activity]["effort"]) {
-      my_data[rol] = data[activity]["effort"][rol];
-    }
-    if ( data[activity].hasOwnProperty("tasks") ) {
-      my_data["tasks"] = data[activity]["tasks"].join(",");
-    }
-    list.push(my_data);
-  }
-
-  return list;
-}
-
-
 // ---- Utilities
 /**
  * Utility : given 2 maps with numbers (eg. efforts), return the sum
@@ -378,10 +330,10 @@ export function computeExpressionCost(expr, effort, roles_costs) {
  * If fValue===null, we use as value the ones in the maps.
  */ 
 export function computeExpression(expr, fValue, ...args) {
-  if ( log_is_low_debug() ) {
-    log_low_debug("computeExpression(expr: '" + expr + "') with fValue " + fValue + " and data");
+  if ( Log.log_is_low_debug() ) {
+    Log.log_low_debug("computeExpression(expr: '" + expr + "') with fValue " + fValue + " and data");
     args.forEach(item => {
-      log_low_debug("  " + JSON.stringify(item));
+      Log.log_low_debug("  " + JSON.stringify(item));
     });
   }
 
@@ -394,7 +346,7 @@ export function computeExpression(expr, fValue, ...args) {
   var my_expr=expr;
   for (const key in data ) {
     const value=fValue ? fValue(key) : data[key];
-    log_is_low_debug() && log_low_debug("key : " + key + " => value : " + value + ".");
+    Log.log_is_low_debug() && Log.log_low_debug("key : " + key + " => value : " + value + ".");
     my_expr=my_expr.replaceAll("{" + key + "}", value);
   }
   if ( my_expr.includes("{") ) {

@@ -1,5 +1,5 @@
 import * as Log from '../lib/log.js';
-import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost } from '../lib/utils.js';
+import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal } from '../lib/utils.js';
 import { 
   buildFormEditNode,
   showFormEditNode,

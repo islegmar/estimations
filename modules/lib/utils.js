@@ -31,7 +31,7 @@ export function updateJSONWithExternals(data, urls, callback, url_prefix, error_
   if ( url_prefix ) {
     url = url_prefix + url;
   }
-  log("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
+  Log.log_debug("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
   fetchJSONFile(url, new_data => {
     for(const k in new_data ) {
       if ( data.hasOwnProperty(k) && error_if_duplicate ) {
@@ -39,7 +39,7 @@ export function updateJSONWithExternals(data, urls, callback, url_prefix, error_
       }
 
       if ( !data.hasOwnProperty(k) || update_if_duplicate ) {
-        log("Add key " + k + " with value " + new_data[k]);
+        Log.log("Add key " + k + " with value " + new_data[k]);
         data[k] = new_data[k];
       }
     }

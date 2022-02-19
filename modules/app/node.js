@@ -1,7 +1,7 @@
 import * as Log from '../lib/log.js';
-import { getValue, daysHuman2Number, round } from '../lib/utils.js';
+import { getValue, daysHuman2Number, daysNumber2Human, round } from '../lib/utils.js';
 
-import { getRootNodes, getCost, getCostsByCenter, sumMaps, updateMap  } from './estimations.js';
+import { getRootNodes, getCost, getCostsByCenter, sumMaps, updateMap, computeExpressionEffort, computeExpressionCost } from './estimations.js';
 // ------------------------------------------------------------------- tree_data
 /**
  * Convert the flat data (templates) in a tree data that can be rendered.
