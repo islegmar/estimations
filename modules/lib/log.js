@@ -4,12 +4,12 @@
 
 // ------------------------------------------------------------------- CONSTANTS
 // Levels
-const LOG_LEVEL_LOW_DEBUG=10;
-const LOG_LEVEL_DEBUG=20;
-const LOG_LEVEL_INFO=30;
-const LOG_LEVEL_WARN=40;
-const LOG_LEVEL_ERROR=50;
-const LOG_LEVEL_NONE=1000;
+export const LOG_LEVEL_LOW_DEBUG=10;
+export const LOG_LEVEL_DEBUG=20;
+export const LOG_LEVEL_INFO=30;
+export const LOG_LEVEL_WARN=40;
+export const LOG_LEVEL_ERROR=50;
+export const LOG_LEVEL_NONE=1000;
 
 // As URL parameter low_level
 const LOG_LEVELS = {
@@ -28,7 +28,7 @@ const LOG_LEVEL_DEFAULT=LOG_LEVEL_NONE;
 /**
  * Return the current log level
  */
-function log_get_level() {
+export function log_get_level() {
   if ( !window.LOG_LEVEL ) {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -47,71 +47,71 @@ function log_get_level() {
  * log_is_low_debug() && log_low_debug(<long message>)
  *
  */
-function log_level_enabled(my_log_level) {
+export function log_level_enabled(my_log_level) {
   return log_get_level() <= my_log_level;
 }
 
-function log_group_start(text) {
+export function log_group_start(text) {
   console.group(text);
 }
 
-function log_group_end() {
+export function log_group_end() {
   console.groupEnd();
 }
 
 // ---------------------------------------------------------------------- LEVELS
 // LOW DEBUG
-function log_is_low_debug() {
+export function log_is_low_debug() {
   return log_level_enabled(LOG_LEVEL_LOW_DEBUG);
 }
 
-function log_low_debug(msg) {
+export function log_low_debug(msg) {
   if ( log_get_level() <= LOG_LEVEL_LOW_DEBUG ) console.log(msg);
 }
 
 // DEBUG
-function log_is_debug() {
+export function log_is_debug() {
   return log_level_enabled(LOG_LEVEL_DEBUG);
 }
 
-function log_debug(msg) {
+export function log_debug(msg) {
   if ( log_get_level() <= LOG_LEVEL_DEBUG ) console.log(msg);
 }
 
 // INFO
-function log_is_info() {
+export function log_is_info() {
   return log_level_enabled(LOG_LEVEL_INFO);
 }
 
-function log_info(msg) {
+export function log_info(msg) {
   if ( log_get_level() <= LOG_LEVEL_INFO ) console.info(msg);
 }
 
 // WARN
-function log_is_warn() {
+export function log_is_warn() {
   return log_level_enabled(LOG_LEVEL_WARN);
 }
 
-function log_warn(msg) {
+export function log_warn(msg) {
   if ( log_get_level() <= LOG_LEVEL_WARN ) console.warn(msg);
 }
 
 // ERROR
-function log_is_error() {
+export function log_is_error() {
   return log_level_enabled(LOG_LEVEL_ERROR);
 }
 
-function log_error(msg) {
+export function log_error(msg) {
   if ( log_get_level() <= LOG_LEVEL_ERROR ) console.error(msg);
 }
 
 // Default
-function log(msg) {
+export function log(msg) {
   log_debug(msg);
 }
 
 /*
-function log(msg, level=LOG_LEVEL_DEBUG) {
+export function log(msg, level=LOG_LEVEL_DEBUG) {
   // First time: get the lovel from params or use the default
   if (LOG_LEVEL===null ) {
     const queryString = window.location.search;

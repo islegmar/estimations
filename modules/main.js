@@ -1,4 +1,8 @@
-import { createJSTree } from './treeTasks.js';
+import * as Log from './lib/log.js';
+import { collapsable, lsDelJSON, lsGetJSON, lsSetJSON, getURLParam, fetchJSONFile, extendsJSON, loadExternal, removeCommentsFromJSON  } from './lib/utils.js';
+
+import { createJSTree } from './app/tree.js';
+import { getFlatDataNormalized } from './app/estimations.js';
 
 // ------------------------------------------------------------------- Functions
 /**
@@ -11,7 +15,7 @@ import { createJSTree } from './treeTasks.js';
  * The data can 
  */
 function saveData(container, name, new_data, callback) {
-  log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
+  Log.log_low_debug("saveData(name:" + name + "). isArray : " + Array.isArray(new_data));
   if ( new_data ) {
     if ( Array.isArray(new_data) ) {
       lsSetJSON(name, new_data);
@@ -20,10 +24,10 @@ function saveData(container, name, new_data, callback) {
       
       var data=lsGetJSON(name);
       if ( !data ) {
-        log_low_debug("New data ....");
+        Log.log_low_debug("New data ....");
         data={};
       } else {
-        log_low_debug("Updating ....");
+        Log.log_low_debug("Updating ....");
       }
       extendsJSON(data, new_data);
 
@@ -62,7 +66,7 @@ function setListenerUploadJSON(container, name, url, url_prefix) {
         saveData(container, name, JSON.parse(txt_result));
       },
       tot => {
-        log_low_debug("Processed : " + tot + " files");
+        Log.log_low_debug("Processed : " + tot + " files");
       }
     );
   });
@@ -119,7 +123,11 @@ function generatesTree() {
       // const my_roots=getRootNodes(estimations).filter( k=> estimations_original.hasOwnProperty(k));
       // const root = my_roots.length==1 ? my_roots[0] : null;
       const root=getURLParam("root", null);
+      const createRoot=getURLParam("createRoot", "false");
 
+      if ( createRoot === "true" ) {
+        estimations[root] = { "tasks" : [] };
+      }
 
       // TODO : find a nicer way for rebuilding the tree from scratch and remove usage of jquery
       $("#tree_tasks").empty();
@@ -196,6 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
             setListenerUploadJSON(container, 'estimations');
             // In estimations because it can have includes, we need a callback to 
             // render when all the data has been loaded
+            if ( getURLParam("createRoot", "false") === "true" ) {
+                if ( !estimations ) estimations={};
+               const root=getURLParam("root", null);
+               estimations[root] = { "tasks" : [] };
+            }
+
             if ( estimations ) {
               saveData(container, 'estimations', estimations, function() {
                 generatesTree();
@@ -206,20 +220,4 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
-  
-  /*
-  document.querySelector("#bImportJSON").addEventListener('change', function(e) {
-    loadLocalFiles(
-      e.target.files, 
-      // Secuencial process of the files uploaded. In some cases we allow upload
-      // several files. like with the estimations
-      (file, txt_result) => {
-        alert("name : " + name + ", json : " + JSON.parse(txt_result));
-      },
-      tot => {
-        log_low_debug("Processed : " + tot + " files");
-      }
-    );
-  });
-  */
 });

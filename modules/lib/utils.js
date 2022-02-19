@@ -1,8 +1,10 @@
+import * as Log from './log.js';
+
 /**
  * Several utilities.
  */
 // TODO : not nice but ...
-function cloneJSON(data) {
+export function cloneJSON(data) {
   return JSON.parse(JSON.stringify(data));
 }
 
@@ -10,7 +12,7 @@ function cloneJSON(data) {
  * If the data has the _include attribute load it and it in the file
  * TODO : now works only with 1 include at the first level
  */ 
-function loadExternal(data, callback, url_prefix ) {
+export function loadExternal(data, callback, url_prefix ) {
   if ( data.hasOwnProperty("_includes") ) {
     updateJSONWithExternals(data, data["_includes"], data => {
       delete data["_includes"];
@@ -24,12 +26,12 @@ function loadExternal(data, callback, url_prefix ) {
 /**
  * TODO : if the new JSON loaded has also _include they are not loaded.
  */
-function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_duplicate=true, update_if_duplicate=true ) {
+export function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_duplicate=true, update_if_duplicate=true ) {
   var url = urls.shift();
   if ( url_prefix ) {
     url = url_prefix + url;
   }
-  log("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
+  Log.log_debug("updateJSONWithExternals(urls=" + urls + ", url=" + url + ")");
   fetchJSONFile(url, new_data => {
     for(const k in new_data ) {
       if ( data.hasOwnProperty(k) && error_if_duplicate ) {
@@ -37,7 +39,7 @@ function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_dupl
       }
 
       if ( !data.hasOwnProperty(k) || update_if_duplicate ) {
-        log("Add key " + k + " with value " + new_data[k]);
+        Log.log("Add key " + k + " with value " + new_data[k]);
         data[k] = new_data[k];
       }
     }
@@ -49,7 +51,7 @@ function updateJSONWithExternals(data, urls, callback, url_prefix, error_if_dupl
   });
 }
 
-function eachRecursive(obj, action) {
+export function eachRecursive(obj, action) {
   for (var k in obj) {
     if (typeof obj[k] == "object" && obj[k] !== null) {
       if ( action ) {
@@ -64,7 +66,7 @@ function eachRecursive(obj, action) {
   }
 }
 
-function makeSafeForCSS(name) {
+export function makeSafeForCSS(name) {
     return name.replace(/[^a-zA-Z0-9]/g, function(s) {
         var c = s.charCodeAt(0);
         if (c == 32) return '-';
@@ -73,12 +75,12 @@ function makeSafeForCSS(name) {
     });
 }
 
-function getClassName(str) {
+export function getClassName(str) {
   const class_name = makeSafeForCSS(str);
   return class_name;
 }
 
-function getElementInArrayOfObjects(list, key, value) {
+export function getElementInArrayOfObjects(list, key, value) {
    var found=null;
    list.forEach(ele => {
      if ( key in ele && ele[key]===value ) {
@@ -89,7 +91,7 @@ function getElementInArrayOfObjects(list, key, value) {
    return found;
 }
 
-function removeChildren($parent) {
+export function removeChildren($parent) {
   while ($parent.firstChild) {
     $parent.removeChild($parent.firstChild);
   }
@@ -98,7 +100,7 @@ function removeChildren($parent) {
 /**
  * Convert an array of Objects in a dictionary indexed by one field.
  */
-function groupBy(list, key) {
+export function groupBy(list, key) {
   var data={};
   list.forEach(item => data[item[key]]=item);
 
@@ -108,7 +110,7 @@ function groupBy(list, key) {
 /**
  * Convert a map in an array of objects so it can be nicely shown in a list
  */
-function map2List(data, keyField, skipValues) {
+export function map2List(data, keyField, skipValues) {
   var list=[];
   for(const keyValue in data ){
     if ( !skipValues || !skipValues.includes(keyValue) ) {
@@ -131,7 +133,7 @@ function map2List(data, keyField, skipValues) {
  * Update a map with the value of other.
  * TODO: probably alread exists a standard method.
  */
-function update(data, newValues, overwriteIfExists=false, addIfNotExist=true) {
+export function update(data, newValues, overwriteIfExists=false, addIfNotExist=true) {
   for (const key in newValues ) {
     if ( !(key in data) && addIfNotExist || (key in data) && overwriteIfExists ) {
       data[key]=newValues[key];
@@ -146,7 +148,7 @@ String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
-function fetchJSONFile(path, callback, keepComments) {
+export function fetchJSONFile(path, callback, keepComments) {
   if ( !path ) {
     callback(null);
   } else {
@@ -167,7 +169,7 @@ function fetchJSONFile(path, callback, keepComments) {
   }
 }
 
-function  getURLParam(key, defValue=null) {
+export function  getURLParam(key, defValue=null) {
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   const value=urlParams.get(key);
@@ -179,7 +181,7 @@ function  getURLParam(key, defValue=null) {
  * Some fun : load a CSS dynamic
  * If a parameter css=.... is specified, it is loaded
  */
-function addCss(css_param){
+export function addCss(css_param){
   const p_css = getURLParam(css_param);
   
   if ( p_css ) {
@@ -201,7 +203,7 @@ function addCss(css_param){
 /**
  * Collapsable
  */
-function collapsable($root){
+export function collapsable($root){
   $root.querySelectorAll('.collapsable').forEach($ele => {
     $ele.querySelector('.header').addEventListener('click', function() {
       const $parent=this.closest('.collapsable');
@@ -219,7 +221,7 @@ function collapsable($root){
  * Because JSON does not accept comments (ehem, ehem!!) I decide to add an attribute
  * _comment to do that BUT when parsing as JSON is a good idea to remove them
  */
-function removeCommentsFromJSON(obj) {
+export function removeCommentsFromJSON(obj) {
   for (let k in obj) {
     if ( k==="_comment" ) {
       delete obj[k];
@@ -229,7 +231,7 @@ function removeCommentsFromJSON(obj) {
   }
 }
 
-function filterMap(src, filter) {
+export function filterMap(src, filter) {
   var data={};
   for(const k in src) {
     if ( filter(k, src[k])) data[k]=src[k];
@@ -237,36 +239,36 @@ function filterMap(src, filter) {
   return data;
 }
 
-const formatterDecimal = new Intl.NumberFormat('en-US', {
+export const formatterDecimal = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
 });
-const formatterCost = new Intl.NumberFormat('es-ES', {
+export const formatterCost = new Intl.NumberFormat('es-ES', {
     style: "currency",
     currency: 'EUR'
 });
-function formatString(value, formatter=formatterDecimal) {
+export function formatString(value, formatter=formatterDecimal) {
   const ret= value ? formatter.format(value) : "";
   return ret;
 }
-function formatDataValue(data, key, formatter=formatterDecimal) {
+export function formatDataValue(data, key, formatter=formatterDecimal) {
     const value=data && data.hasOwnProperty(key) ? data[key] : "";
     return formatString(value, formatter);
 }
 
-function round(value, num_dec=2) {
+export function round(value, num_dec=2) {
   return Math.round(value * 10 ** num_dec)/10 ** num_dec;
 }
 
-function lsSetJSON(name, data) {
+export function lsSetJSON(name, data) {
   localStorage.setItem(name, JSON.stringify(data));
 }
 
-function lsGetJSON(name) {
+export function lsGetJSON(name) {
   return JSON.parse(localStorage.getItem(name));
 }
 
-function lsDelJSON(name) {
+export function lsDelJSON(name) {
   return localStorage.removeItem(name);
 }
 
@@ -290,7 +292,7 @@ function lsDelJSON(name) {
  *  - use Array instead the integer files_processed
  *  - provide as reply two arrays with the files processed and the not processed
  */    
-function loadLocalFiles(files_to_process, onFile, onDone, ind_files_processed=0, allowed=['application/json']) {
+export function loadLocalFiles(files_to_process, onFile, onDone, ind_files_processed=0, allowed=['application/json']) {
   if  ( files_to_process.length==ind_files_processed ) {
     if ( onDone ) {
       onDone(ind_files_processed);
@@ -325,7 +327,7 @@ function loadLocalFiles(files_to_process, onFile, onDone, ind_files_processed=0,
  * TODO: check if it exists a standard way. Now in this implementation 
  *       only work for Dictionaries (so it JSON is a list it would fail)
  */
-function extendsJSON(old_json, new_json, allow_overwrite=true) {
+export function extendsJSON(old_json, new_json, allow_overwrite=true) {
   // Make a clone so avoid "side effects" if new_json is changed
   var my_new_json = cloneJSON(new_json);
   for (const k in my_new_json ) {
@@ -344,8 +346,8 @@ function extendsJSON(old_json, new_json, allow_overwrite=true) {
  * If no format specified or is a number are days.
  * TODO: pass as optional an argument with a map unit => number of days
  */
-function daysHuman2Number(duration) {
-  log_debug("duration:" + duration);
+export function daysHuman2Number(duration) {
+  Log.log_debug("duration:" + duration);
 
   if ( !duration ) return null;
 
@@ -356,7 +358,7 @@ function daysHuman2Number(duration) {
       value = parseFloat(tags[1]);
       const unit = tags[2];
 
-      log_debug("Duration : '" + duration + "' => value : '" + tags[1] + "', unit : '" + tags[2] + "'");
+      Log.log_debug("Duration : '" + duration + "' => value : '" + tags[1] + "', unit : '" + tags[2] + "'");
          
       if ( unit==="d" ) {
         value *= 1.0;
@@ -368,12 +370,12 @@ function daysHuman2Number(duration) {
         throw new Error("Unknown unit '" + unit + "' in duration '" + duration + "'");
       }
     } else {
-      log_error("Not possible to parse the string with the duration '" + duration + "'. Set 1.0 as duration");
+      Log.log_error("Not possible to parse the string with the duration '" + duration + "'. Set 1.0 as duration");
       value=1.0;
     }
   } else {
     value=parseFloat(duration);
-    log_debug("Number. duration : " + duration + " => value : " + value);
+    Log.log_debug("Number. duration : " + duration + " => value : " + value);
   }
 
   return value;
@@ -381,7 +383,7 @@ function daysHuman2Number(duration) {
 /*
  * TODO: pass as optional an argument with a map unit => number of days
  */
-function daysNumber2Human(duration) {
+export function daysNumber2Human(duration) {
   var value=null;
   var unit=null;
 
@@ -400,7 +402,7 @@ function daysNumber2Human(duration) {
 }
 
 // TODO: escape character quote 
-function convertArrayOfObjectsToCSV(data, keys, quote='"', columnDelimiter=',', lineDelimiter='\n') {
+export function convertArrayOfObjectsToCSV(data, keys, quote='"', columnDelimiter=',', lineDelimiter='\n') {
   var result, ctr, keys, columnDelimiter, lineDelimiter, data;
 
   if (data == null || !data.length) {
@@ -431,11 +433,11 @@ function convertArrayOfObjectsToCSV(data, keys, quote='"', columnDelimiter=',', 
   return result;
 }
 
-function downloadCSV(data, headers, filename='export.csv', mimetype='application/csv') {
+export function downloadCSV(data, headers, filename='export.csv', mimetype='application/csv') {
   downloadData(convertArrayOfObjectsToCSV(data, headers), filename, mimetype);
 }
 
-function downloadData(data, filename, mimetype) {
+export function downloadData(data, filename, mimetype) {
   if (data == null) return;
 
   /*
@@ -445,20 +447,20 @@ function downloadData(data, filename, mimetype) {
   */
   var down_data = 'data:' + mimetype + ';charset=utf-8,' + encodeURIComponent(data);
 
-  link = document.createElement('a');
+  var link = document.createElement('a');
   link.setAttribute('href', down_data);
   link.setAttribute('download', filename);
   link.click();
 }
 
-function getValue(data, prop, def="") {
+export function getValue(data, prop, def="") {
   return data && data.hasOwnProperty(prop) ? data[prop] : def;
 }
 
 /**
  * Convert an array of objets (so we matter the order) in a map.
  */
-function listOfMaps2Map(listMaps) {
+export function listOfMaps2Map(listMaps) {
   var map={};
 
   listMaps.forEach(item => {
@@ -473,7 +475,7 @@ function listOfMaps2Map(listMaps) {
 /**
  * Return a map where the list elements are grouped.
  */
-function groupListElements(list, fKey) {
+export function groupListElements(list, fKey) {
   var groups={};
   list.forEach(ele => {
     const key=fKey(ele);

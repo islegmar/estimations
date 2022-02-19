@@ -1,3 +1,7 @@
+import * as Log from '../lib/log.js';
+import { getValue, daysHuman2Number, daysNumber2Human, round } from '../lib/utils.js';
+
+import { getRootNodes, getCost, getCostsByCenter, sumMaps, updateMap, computeExpressionEffort, computeExpressionCost } from './estimations.js';
 // ------------------------------------------------------------------- tree_data
 /**
  * Convert the flat data (templates) in a tree data that can be rendered.
@@ -17,7 +21,7 @@ export function getJsTreeData(d_flat_data, root_node) {
  * when rendering the tree, adiing the children nodes.
  */
 export function getTreeNodeData(name, d_flat_data) {
-  log_is_low_debug() && log_low_debug("getTreeNodeData(d_flat_data[" + name + "]: " + JSON.stringify(d_flat_data[name]) + ")");
+  Log.log_is_low_debug() && Log.log_low_debug("getTreeNodeData(d_flat_data[" + name + "]: " + JSON.stringify(d_flat_data[name]) + ")");
   // data keeps all the info that will be shown in the tree for ecah row
   // data.notes es computed every time we refresh the tree, for this reason we leave it here empty
   const my_flat_data=d_flat_data[name];
@@ -105,13 +109,13 @@ export function getTreeNodeData(name, d_flat_data) {
  * - weight 
  */
 export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent_cost_center, parent_start_date, parent_end_date, roles, config) {
-  log_group_start("getNodeMDAndUpdate(" + node.text + ")");
+  Log.log_group_start("getNodeMDAndUpdate(" + node.text + ")");
   // This is the effort of this node that for the composed is the sum of the effort of allthe children
   var my_effort={};
   
-  if ( log_is_low_debug() ) {
-    log_low_debug("getNodeMDAndUpdate(weight:" + weight +" , parent_duration:" + parent_duration + ", parent_cost_center : " + parent_cost_center + ")");
-    log_low_debug("node.data : " + JSON.stringify(node.data, null, 2));
+  if ( Log.log_is_low_debug() ) {
+    Log.log_low_debug("getNodeMDAndUpdate(weight:" + weight +" , parent_duration:" + parent_duration + ", parent_cost_center : " + parent_cost_center + ")");
+    Log.log_low_debug("node.data : " + JSON.stringify(node.data, null, 2));
   }
   const children = node.children;
 
@@ -121,7 +125,7 @@ export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent
 
   // COMPOSED node
   if ( node.data.isComposed /*children.length>0*/ ) {
-    log_low_debug("With nodes");
+    Log.log_low_debug("With nodes");
     // TODO: do we have to do something, some check, between the value of parent_duration (arguments) 
     // and this one? Eg. in the argument has a value and this is null, which one should be valid?
     parent_duration = node.data.duration ? node.data.duration : parent_duration;
@@ -147,7 +151,7 @@ export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent
     });
   // SIMPLE node
   } else {
-    log_low_debug("Pure estimation");
+    Log.log_low_debug("Pure estimation");
     if ( node.state.checked ) {
       var my_duration = null;
 
@@ -201,7 +205,7 @@ export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent
             // Column is a calculated cost
             } else if ( col_cfg.hasOwnProperty("isCost") && col_cfg["isCost"] && col_cfg.hasOwnProperty("base") ) {
               const base=col_cfg["base"];
-              log_low_debug("base : " + base);
+              Log.log_low_debug("base : " + base);
               // Base is a rol
               if ( roles[base] ) {
                 col_value=computeExpressionCost("{" + base + "}", my_effort, roles_costs)
@@ -215,7 +219,7 @@ export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent
         }
       }
     }
-    log_is_low_debug() && log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
+    Log.log_is_low_debug() && Log.log_low_debug("Final my_effort: " + JSON.stringify(my_effort));
   }
 
   // -------------------------------------
@@ -254,7 +258,7 @@ export function getNodeMDAndUpdate(jstree, node, weight, parent_duration, parent
     node.text=node.data.description;
   }
 
-  log_group_end();
+  Log.log_group_end();
 
   if ( node.data.has_error ) {
     node.icon="img/warning.png";

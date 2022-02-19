@@ -213,6 +213,9 @@ Here you can see [the final file](demo/data/13.several-costs/project.json) and t
 #### Planning
 Here you can see [the final file](demo/data/14.planning/project.json) and the [demo](index.html?log_level=low_debug&roles=demo/data/14.planning/roles.json&estimations=demo/data/14.planning/project.json)
 
+#### Create from Scratch
+The [demo](index.html?log_level=low_debug&roles=demo/data/00.basic/roles.json&root=MyProject&createRoot=true)
+
 ## Using the sandbox
 
 TBD

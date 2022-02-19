@@ -1,3 +1,5 @@
+import * as Log from '../lib/log.js';
+import { cloneJSON, listOfMaps2Map, removeChildren, formatDataValue, formatterCost, formatterDecimal } from '../lib/utils.js';
 import { 
   buildFormEditNode,
   showFormEditNode,
@@ -9,14 +11,13 @@ import {
   getNodeMDAndUpdate,
   updateTreeData,
   cleanMDTreeNode
-} from './treeData.js';
+} from './node.js';
 import { 
   export2CSVTree,
   export2JSONTree,
   exportCosts,
   exportPlanning
 } from './exports.js';
-import * as Planning from './planning.js';
 
 // grid : https://everyething.com/example-of-deitch-jsTree-grid
 //
@@ -237,7 +238,7 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
     // TODO : the node affected should be pass to the popup BUT not know ho to 
     //        to do it, so we save the data in $container (ugly!)
     $container.on("custom.select_node", function(e, tree_node, action) {
-      log("Action " + action + " on node " + JSON.stringify(tree_node));
+      Log.log_debug("Action " + action + " on node " + JSON.stringify(tree_node));
       $container.data("sel_node", tree_node);
       if ( action==="addTask" ) {
         // Fill the select with all the possible activities
@@ -264,7 +265,7 @@ export function createJSTree($container_parent, $container, $search, tree_data, 
       const tree_node = $container.data("sel_node");
 
       const activity=$p_select_activity.find("select").children("option:selected").val();
-      log("Activity : " + activity);
+      Log.log_debug("Activity : " + activity);
 
       const child = getTreeNodeData(activity, d_flat);
       child.id=true;
