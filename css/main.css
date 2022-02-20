@@ -209,3 +209,28 @@ table tbody tr.active-row {
 .planning .level_4 { opacity: 0.4; }
 .planning .level_5 { opacity: 0.2; }
 
+
+/*
+#gantt > * {
+  padding:0px;
+  position:relative;
+}
+*/
+
+#gantt > * > * {
+  padding:0px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* We set the legt margin to move the boxes with JS */
+#gantt span {
+  width:100%;
+  height:100%;
+  padding:0px;
+  position:absolute;
+}
+
+#gantt > *:not(:first-child) > *:not(:first-child) {
+  border:0px;
+}

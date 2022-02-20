@@ -1,6 +1,6 @@
 import * as DateUtils from '../lib/dates.js';
 import * as Log from '../lib/log.js';
-import { removeChildren, groupListElements, formatString } from '../lib/utils.js';
+import { removeChildren, groupListElements, getGroupListElements, formatString } from '../lib/utils.js';
 
 import { walk_tree } from './exports.js';
 
@@ -15,6 +15,38 @@ document.addEventListener("custom.planning.refresh", function (evt) {
  */ 
 function getKeyDate(dt) {
   return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
+}
+
+/* Given the denomination of a group in format mm-yy (see getKeyDate) , it gives the start and end date. */
+function getDatesInGroup(group) {
+  var start=null;
+  var end=null;
+  const values=group.match(/(\d+)-(\d+)/);
+  if ( values ) {
+    const month=parseInt(values[1]-1);
+    const year=values[2].length==2 ? 2000 + parseInt(values[2]) : parseInt(values[2]);
+    Log.log_is_low_debug() && Log.log_low_debug("group : '" + group + "' => month (start 0) : '" + month + "', year : '" + year + "'");
+    start=new Date(year, month, 1);
+    end=new Date(year, month, 1);
+
+    while ( true ) {
+      end.setDate(end.getDate()+1);
+      if ( end.getMonth()!=month ) {
+        end.setDate(end.getDate()-1);
+        break;
+      }
+    }
+
+  } else {
+    throw new Eror("Group '" + group + "' does not have the format month-year");
+  }
+
+  Log.log_is_low_debug() && Log.log_low_debug("group : '" + group + "' => start : '" + start + "', end : '" + end + "'");
+
+  return {
+    'start' : start,
+    'end' : end
+  };
 }
 
 // ----------------------------------------------------------------------- Gantt
@@ -43,12 +75,63 @@ function buildGantt(eTable, jstree) {
 
     gantt.headers.forEach(name => {
       if ( name !== 'Task' ) {
+        var period_name=name;
+
         var eCell=document.createElement('div');
         eRow.appendChild(eCell);
 
-        if ( item.periods[name] ) {
-          eCell.classList.add("busy");
-          eCell.classList.add("level_" + item.level);
+        var eSpan=document.createElement('span');
+        eCell.appendChild(eSpan);
+
+        if ( item.periods[period_name] ) {
+          eSpan.classList.add("busy");
+          eSpan.classList.add("level_" + item.level);
+
+          // Now compute the shift
+          // item.periods[name] is the number of dates this task has in this period,
+          // so we have to compute this based on the number of possible dates it has
+          // my_perc is a % "spacing" this task in that period. 
+          // - my_perc = 0% => it takes the whole month
+          // - my_perc > 0% => it takes partial tht can be 
+          //   + end of the period   => left margin
+          //   + start of the period => right margin
+          const period_dates=getDatesInGroup(period_name);
+          const number_days_period=DateUtils.getListDates( 
+            period_dates.start,
+            period_dates.end
+          ).length;
+          const my_days=item.periods[period_name].length;
+          var my_perc=100-parseInt(100*my_days/number_days_period);
+          // It shouln't happen but ....
+          if ( my_perc<0 ) my_perc=0;
+
+          // Ok, are we in the bebinning or the end?
+          var is_at_end=null;
+          if ( my_perc > 0 ) {
+            // If my first date is the first date of the period => is the end
+            if ( item.periods[period_name][0].getTime() === period_dates.start.getTime() ) {
+              is_at_end=true;
+              eSpan.style.right=my_perc + "%";
+            } else {
+              is_at_end=false;
+              eSpan.style.left=my_perc + "%";
+            }
+          } else {
+            eSpan.style.right=0;
+          }
+          
+          if ( Log.log_is_low_debug() ) {
+            Log.log_low_debug(
+              "Period : " + period_name + 
+              ", number_days_period : " + number_days_period + 
+              ", my_days : " + my_days + 
+              ", my_perd : " + my_perc + 
+              ", my_first_date : " + item.periods[period_name][0] +
+              ", period_first_date : " + period_dates.start +
+              ", is_at_end : " + is_at_end + 
+              "."
+            );
+          }
         }
       }
     });
@@ -76,7 +159,7 @@ function getGantt(jstree) {
     }
   });
 
-  const period_names=Object.keys(groupListElements(DateUtils.getListDates(start_date, end_date), getKeyDate)).sort();
+  const period_names=getGroupListElements(DateUtils.getListDates(start_date, end_date), getKeyDate);
   var headers=['Task', ...period_names];
 
   return {

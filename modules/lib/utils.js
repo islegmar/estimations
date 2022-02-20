@@ -107,6 +107,7 @@ export function groupBy(list, key) {
   return data;
 }
 
+
 /**
  * Convert a map in an array of objects so it can be nicely shown in a list
  */
@@ -481,6 +482,19 @@ export function groupListElements(list, fKey) {
     const key=fKey(ele);
     if ( !groups[key] ) groups[key]=[];
     groups[key].push(ele);
+  });
+
+  return groups;
+}
+
+/**
+ * If list is ordered, return the group elements in order.
+ */
+export function getGroupListElements(list, fKey) {
+  var groups=[];
+  list.forEach(ele => {
+    const key=fKey(ele);
+    if ( !groups.includes(key) ) groups.push(key);
   });
 
   return groups;
