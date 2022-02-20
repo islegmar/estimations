@@ -368,4 +368,4 @@ TBD
 - When exporting CSV, add a column if there is a warning.
 - In index.html possibility for cleaning from tree some config data / project
 - When showing the timeline (monthly), add some degradation or something else to put empty before start / after end
-- Ad some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration
+- Add some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration

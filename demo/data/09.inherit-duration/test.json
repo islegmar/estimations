@@ -1,0 +1,8 @@
+{
+  "My Project" : { 
+    "tasks" : [ 
+      "Simple Task"
+    ]
+  },
+  "Simple Task"  : { "duration" : 20, "BE" : 2, "FE" : 1 }
+}

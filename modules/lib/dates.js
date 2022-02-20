@@ -11,6 +11,26 @@ export function getListDates(d_start, d_end) {
   return list;
 }
 
+export function sumWorkingDays(dt, tot) {
+  var my_dt=new Date(dt);
+  while ( tot>0 ) {
+    my_dt.setDate(my_dt.getDate()+1);
+    if ( !isWeekend(my_dt) ) --tot;
+  }
+
+  return my_dt;
+}
+
+export function substractWorkingDays(dt, tot) {
+  var my_dt=new Date(dt);
+  while ( tot>0 ) {
+    my_dt.setDate(my_dt.getDate()-1);
+    if ( !isWeekend(my_dt) ) --tot;
+  }
+
+  return my_dt;
+}
+
 export function isWeekend(dt) {
   var dayOfWeek = dt.getDay();
   return (dayOfWeek === 6) || (dayOfWeek === 0);
@@ -35,6 +55,10 @@ export function date2Str(dt) {
     dt.getFullYear();
 }
 
+export function getNowAsStr() {
+  return date2Str(new Date());
+}
+
 export function getTotWorkingDays(list) {
   var tot=0;
 
@@ -43,4 +67,10 @@ export function getTotWorkingDays(list) {
   });
 
   return tot;
+}
+
+export function getNumberDays(date1, date2) {
+  var diff = date2.getTime() - date1.getTime();
+
+  return parseInt(diff / (1000 * 3600 * 24));
 }

@@ -115,9 +115,9 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
     // - type
     // - duration
     // - size
-    var type_activity = getValue(data, "type"    , null);
-    const duration    = getValue(data, "duration", null);
-    const size        = getValue(data, "size"    , null);
+    var type_activity = getValue(data, "type"    );
+    const duration    = getValue(data, "duration");
+    const size        = getValue(data, "size"    );
 
     // 2> Initial calculation of the MD
     // duration : the values is the factor

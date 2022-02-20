@@ -115,14 +115,14 @@ export function createJSTree($container_parent, $container, $search, root_node, 
   columns.push({header: "Notes", "columnClass" : "notes", value: function(node){ return node.data.notes; }});
   columns.push({header: "Assumptions", "columnClass" : "assumptions", value : "assumptions", "_hidden" : true});
 
-  columns.push({header: "My Start Date", "columnClass" : "my_start_date", value : "my_start_date", "_hidden" : true});
-  columns.push({header: "My End Date", "columnClass" : "my_end_date", value : "my_end_date", "_hidden" : true});
-  columns.push({header: "Start Date", "columnClass" : "start_date", value : "start_date", "_hidden" : false});
-  columns.push({header: "End Date", "columnClass" : "end_date", value : "end_date", "_hidden" : false});
+  columns.push({header: "My Start Date", "columnClass" : "my_start_date", value : "my_start_date", "_hidden" : false});
+  columns.push({header: "My End Date"  , "columnClass" : "my_end_date"  , value : "my_end_date"  , "_hidden" : false});
+  columns.push({header: "Start Date"   , "columnClass" : "start_date"   , value : "start_date"   , "_hidden" : false});
+  columns.push({header: "End Date"     , "columnClass" : "end_date"     , value : "end_date"     , "_hidden" : false});
 
   columns.push({header: "Duration Template", "columnClass" : "duration_template", value : "duration_template", "_hidden" : true});
-  columns.push({header: "My Duration"      , "columnClass" : "my_duration"      , value : "my_duration"      , "_hidden" : true});
-  columns.push({header: "Duration"         , "columnClass" : "duration"         , value : "duration"         , "_hidden" : true});
+  columns.push({header: "My Duration"      , "columnClass" : "my_duration"      , value : "my_duration"      , "_hidden" : false});
+  columns.push({header: "Duration"         , "columnClass" : "duration"         , value : "duration"         , "_hidden" : false});
 
   // Show the checkboxes to show/hide columns in the tree
   if ( $p_col_selector ) {
