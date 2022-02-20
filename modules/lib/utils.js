@@ -453,8 +453,8 @@ export function downloadData(data, filename, mimetype) {
   link.click();
 }
 
-export function getValue(data, prop, def="", use_def_if_empty=false) {
-  return data && data.hasOwnProperty(prop) && (!use_def_if_empty || data[prop]) ? data[prop] : def;
+export function getValue(data, prop, def=null) {
+  return data && data.hasOwnProperty(prop) && !isEmpty(data[prop]) ? data[prop] : def;
 }
 
 /**
@@ -486,12 +486,17 @@ export function groupListElements(list, fKey) {
   return groups;
 }
 
-/*
-downloadCSV(
-  [ 
-    { "name" : "Pepe, Antonio", "age" : 13},
-    { "name" : "Juan", "age" : 88}
-  ],
-  ["name", "age"]
-);
-*/
+export function isEmpty(obj) {
+  if ( !obj ) return true;
+
+  if ( typeof obj === "string" ) {
+    return obj.length === 0;
+  } else if ( Array.isArray(obj) ) {
+    return obj.length === 0;
+  } else if ( typeof obj === "object" ) {
+    return Object.keys(obj).length === 0;
+  // Numbers .... any value of the numver (including 0) is NOT EMPTY
+  } else {
+    return false;
+  }
+}

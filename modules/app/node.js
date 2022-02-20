@@ -1,4 +1,5 @@
 import * as Log from '../lib/log.js';
+import * as DateUtils from '../lib/dates.js';
 import { getValue, daysHuman2Number, daysNumber2Human, round } from '../lib/utils.js';
 
 import { getRootNodes, getCost, getCostsByCenter, sumMaps, updateMap, computeExpressionEffort, computeExpressionCost } from './estimations.js';
@@ -29,7 +30,11 @@ export function getTreeNodeData(name, d_flat_data) {
   const my_flat_data=d_flat_data[name];
   const isComposed = my_flat_data.hasOwnProperty("tasks");
 
-  // TODO: fix the mess of duration
+  // The field duration is "special". With the other fields (eg. weight) I can set the value
+  // in the template or in the form and later can be calculated, but this is not exactly the case
+  // with duration becuase it has tow special values (inherit, pending) that can be set in the template BUT those values
+  // can not be set in the form, there we're only allowed to set values as number / strings
+  var my_duration = getValue(my_flat_data, "duration");
   var my_node={
     text : name, 
     name : name,
@@ -37,15 +42,15 @@ export function getTreeNodeData(name, d_flat_data) {
       isComposed         : isComposed,
       // --- Data from the template, do not change
       // TIP : If they do not have template_ is becuase the value is never changed and they user like that
-      duration_template  : getValue(my_flat_data, "duration", ""),
+      duration_template  : my_duration,
       notes_template     : getValue(my_flat_data, "notes", ""),
       assumptions        : getValue(my_flat_data, "assumptions", []).join(),
-      effort             : getValue(my_flat_data, "effort", null),
+      effort             : getValue(my_flat_data, "effort"),
       // --- Can be edited (usually using a form)
       // TIP : if they start with my_ is because the final value used is another and this one is used as base.
       // For example we can set the value my_start_date BUT at the end it will be used start_date
       description        : getValue(my_flat_data, "description", ""),
-      my_duration        : null,
+      my_duration        : ["pending", "inherit"].includes(my_duration) ? null : my_duration,
       my_cost_center     : getValue(my_flat_data, "cost_center"),
       my_start_date      : getValue(my_flat_data, "start_date"),
       my_end_date        : getValue(my_flat_data, "end_date"),
@@ -106,10 +111,11 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
 
   // Attributes that recalculated every time
   // Can get the value from the parent
-  node.data.cost_center = getValue(node.data, "my_cost_center", getValue(parent_node.data, "cost_center", null), true);
-  node.data.start_date  = getValue(node.data, "my_start_date" , getValue(parent_node.data, "start_date" , null), true);
-  node.data.end_date    = getValue(node.data, "my_end_date"   , getValue(parent_node.data, "end_date"   , null), true);
+  node.data.cost_center = getValue(node.data, "my_cost_center", getValue(parent_node.data, "cost_center", null));
   node.data.weight      = parseFloat(getValue(node.data, "my_weight", "1.0")) * parseFloat(getValue(parent_node.data, "weight", "1.0"));
+
+  node.data.start_date  = getValue(node.data, "my_start_date");
+  node.data.end_date    = getValue(node.data, "my_end_date"  );
 
   // Attributes that are calculated 
   node.data.md                 = {};
@@ -124,23 +130,85 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
   // has a meaning. For example if duration is inherit and the value is null that
   // means there is an error
   node.data.duration = null;
-  if ( node.data.duration_template==="pending" ) {
-    if ( node.data.my_duration ) {
-      node.data.duration = daysHuman2Number(node.data.my_duration);
-    } else {
-      node.data.has_error = true;
-      node.data.error_msg = "duration not set in node";
-    }
-  } else if ( node.data.duration_template==="inherit" ) {
-    if ( parent_node.data.duration ) {
-      node.data.duration = parent_node.data.duration;
-    } else {
-      node.data.has_error = true;
-      node.data.error_msg = "Inherit duration and not set in parent";
-    }
+  // In the composed, unless we have set an specific value for the duration, 
+  // we get the one from the parent
+  if ( node.data.isComposed ) {
+    node.data.duration = daysHuman2Number(getValue(node.data, "my_duration", getValue(parent_node.data, "duration", null)));
   } else {
-    // Unless we have set an specific value for the duration, we get the one from the parent
-    node.data.duration = daysHuman2Number(getValue(node.data, "my_duration", getValue(parent_node.data, "duration", null), true));
+    if ( node.data.duration_template==="pending" ) {
+      if ( node.data.my_duration ) {
+        node.data.duration = daysHuman2Number(node.data.my_duration);
+      } else {
+        node.data.has_error = true;
+        node.data.error_msg = "duration not set in node";
+      }
+    } else if ( node.data.duration_template==="inherit" ) {
+      if ( parent_node.data.duration ) {
+        node.data.duration = parent_node.data.duration;
+      } else {
+        node.data.has_error = true;
+        node.data.error_msg = "Inherit duration and not set in parent";
+      }
+    } else {
+      node.data.duration = daysHuman2Number(getValue(node.data, "my_duration"));
+    }
+  }
+
+  // The 3 variables start_date / end_date / duration are related
+  if ( !node.has_error ) {
+    // If we have set the 3 variables, check if they are valid
+    if ( node.data.duration !== null && node.data.start_date !==null && node.data.end_date !== null ) {
+      Log.log_warn("TODO : check validity relation start_date / end_date / duration are related");
+    // At least one of the variables is set
+    } else if ( node.data.duration !== null || node.data.start_date !==null || node.data.end_date !== null ) {
+      if ( node.data.duration !== null ) {
+        // Try to get the info from the parent
+        if ( node.data.start_date === null && node.data.end_date === null ) {
+          node.data.start_date = getValue (parent_node.data, "start_date");
+          if ( node.data.start_date === null ) {
+            node.data.end_date = getValue (parent_node.data, "end_date");
+          }
+        }
+
+        if ( node.data.start_date !==null ) {
+          node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
+        } else if ( node.data.end_date !== null ) {
+          node.data.start_date = DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration);
+        } else {
+          Log.log_debug("[duration!=null, start_date=null, set_date!=null] Set default value start_date = NOW");
+          node.data.start_date = DateUtils.getNowAsStr();
+          node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
+        }
+      } else if ( node.data.start_date !== null ) {
+        // Try to get the info from the parent
+        if ( node.data.duration === null && node.data.end_date === null ) {
+          node.data.end_date = getValue (parent_node.data, "end_date");
+        }
+
+        if ( node.data.duration !==null ) {
+          node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
+        } else if ( node.data.end_date !== null ) {
+          node.data.duration = DateUtils.getNumberDays( DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date) );
+        } else {
+          Log.log_debug("[start_date!=null, duration==null, end_date!=null] No possible to set default values");
+        }
+      } else if ( node.data.end_date !== null ) {
+        // Try to get the info from the parent
+        if ( node.data.duration === null && node.data.start_date === null ) {
+          node.data.start_date = getValue (parent_node.data, "start_date");
+        }
+
+        if ( node.data.duration !==null ) {
+          node.data.start_date = DateUtils.date2Str( DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration) );
+        } else if ( node.data.start_date !== null ) {
+          node.data.duration = DateUtils.getNumberDays( DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date) );
+        } else {
+          Log.log_debug("[end_date!=null, duration==null, start_date!=null] No possible to set default values");
+        }
+      } else {
+        throw new Error("This is never thrown!!!!");
+      }
+    }
   }
 
   // COMPOSED node
@@ -164,7 +232,11 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
     Log.log_low_debug("Pure estimation");
     if ( node.state.checked && !node.data.has_error ) {
       for (const k in node.data.effort ) {
-        node.data.md[k] = node.data.effort[k] * node.data.weight * (node.data.duration ? node.data.duration : 1.0);
+        node.data.md[k] = node.data.effort[k] * node.data.weight;
+        // Dynamic durations not resolved when normalizing the templates
+        if ( ["pending", "inherit"].includes(node.data.duration_template) ) {
+          node.data.md[k] *= node.data.duration;
+        }
       }
 
       // Compute the costs 
@@ -230,10 +302,10 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
     }
   } else {
     if ( node.data.duration_template==="inherit" ) {
-      node.data.notes+="[parent_duration:" + parent_node.data.duration + "]";
+      node.data.notes+="[parent_duration:" + getValue(parent_node.data, "duration", "") + "]";
     }
     if ( node.data.duration_template==="pending" ) {
-      node.data.notes+="[my_duration:" + node.data.duration + "]";
+      node.data.notes+="[my_duration:" + getValue(node.data, "duration", "") + "]";
     }
   }
   node.data.notes = node.data.notes + node.data.notes_template;

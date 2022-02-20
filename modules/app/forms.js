@@ -17,12 +17,17 @@ export function buildFormEditNode($container, $p_edit_node, roles) {
 
       var data=Form.getData($p_edit_node[0]);
 
-      tree_node.data.description    = getValue(data, "description");
-      tree_node.data.my_weight      = getValue(data, "weight");
-      tree_node.data.my_cost_center = getValue(data, "cost_center");
-      tree_node.data.my_start_date  = getValue(data, "start_date");
-      tree_node.data.my_end_date    = getValue(data, "end_date");
-      tree_node.data.my_duration    = getValue(data, "duration");
+      // TODO: in some cases some of this values will be null because they are not 
+      // editable (eg. duration in a simple node) and in this case we don't want
+      // to set null the value, but sure there is a more elegant way.
+      for (const k in data) {
+        if ( k === "description" ) tree_node.data.description    = data [k];
+        if ( k === "weight" )      tree_node.data.my_weight      = data [k]; 
+        if ( k === "cost_center" ) tree_node.data.my_cost_center = data [k];
+        if ( k === "start_date" )  tree_node.data.my_start_date  = data [k];
+        if ( k === "end_date" )    tree_node.data.my_end_date    = data [k]; 
+        if ( k === "duration" )    tree_node.data.my_duration    = data [k]; 
+      }
 
       $.modal.close();
       $container.trigger("custom.refresh");
@@ -34,15 +39,13 @@ export function showFormEditNode($p_edit_node, tree_node) {
   var data = {
     "description" : tree_node.data.description,
     "weight"      : tree_node.data.my_weight,
-    "cost_center" : tree_node.data.my_cost_center
+    "cost_center" : tree_node.data.my_cost_center,
+    "start_date"  : tree_node.data.start_date,
+    "end_date"    : tree_node.data.end_date
   };
 
   if ( tree_node.data.isComposed || tree_node.data.duration_template === "pending" ) {
     data["duration"]=tree_node.data.my_duration;
-  }
-  if ( tree_node.data.isComposed ) {
-    data["start_date"] = tree_node.data.start_date;
-    data["end_date"]   = tree_node.data.end_date;
   }
 
   Form.setData($p_edit_node[0], data);
