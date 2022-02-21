@@ -3,7 +3,8 @@ import * as Log from '../lib/log.js';
 import { removeChildren, groupListElements, getGroupListElements, formatString } from '../lib/utils.js';
 
 import { walk_tree } from './exports.js';
-import * as TS  from '/modules/app/timeseries.js';
+import { showGraphics } from './graphics.js';
+import * as TS  from './timeseries.js';
 
 document.addEventListener("custom.planning.refresh", function (evt) {
   const eContainer=evt.detail.container;
@@ -133,6 +134,8 @@ function getGantt(jstree) {
 // TODO: change the name, this is confusing.
 // Here we show, given a Task, the detail FTEs for the different periods
 function buildPlanning(eContainer, jstree, node) {
+  showGraphics(jstree, node);
+
   eContainer.querySelector('.header').innerHTML = node.text;
 
   var eTable=eContainer.querySelector('.content');
@@ -253,7 +256,7 @@ function periodshowDetailTaskByRol(eContainer, jstree, node) {
 /**
  * Return a list of simple nodes children of a certain node.
  */
-function get_simple_nodes(jstree, root) {
+export function get_simple_nodes(jstree, root) {
   var list=[];
 
   walk_tree(jstree, node => {
