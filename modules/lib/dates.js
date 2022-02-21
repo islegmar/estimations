@@ -1,11 +1,13 @@
 /**
  * Return an array of Dates between 2 dates (included)
  */
-export function getListDates(d_start, d_end) {
+export function getListDates(d_start, d_end, fCheck=null) {
   var dt=new Date(d_start);
   var list=[];
   while ( dt<=d_end ) {
-    list.push(new Date(dt));
+    if ( !fCheck || fCheck(dt) ) {
+      list.push(new Date(dt));
+    }
     dt.setDate(dt.getDate()+1);
   }
   return list;

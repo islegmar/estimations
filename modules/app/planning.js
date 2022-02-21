@@ -3,6 +3,7 @@ import * as Log from '../lib/log.js';
 import { removeChildren, groupListElements, getGroupListElements, formatString } from '../lib/utils.js';
 
 import { walk_tree } from './exports.js';
+import * as TS  from '/modules/app/timeseries.js';
 
 document.addEventListener("custom.planning.refresh", function (evt) {
   const eContainer=evt.detail.container;
@@ -87,48 +88,41 @@ function buildGantt(eTable, jstree) {
           eSpan.classList.add("busy");
           eSpan.classList.add("level_" + item.level);
 
-          // Now compute the shift
+          // Now compute the box
           // item.periods[name] is the number of dates this task has in this period,
           // so we have to compute this based on the number of possible dates it has
           // my_perc is a % "spacing" this task in that period. 
-          // - my_perc = 0% => it takes the whole month
-          // - my_perc > 0% => it takes partial tht can be 
-          //   + end of the period   => left margin
-          //   + start of the period => right margin
           const period_dates=getDatesInGroup(period_name);
-          const number_days_period=DateUtils.getListDates( 
-            period_dates.start,
-            period_dates.end
-          ).length;
-          const my_days=item.periods[period_name].length;
-          var my_perc=100-parseInt(100*my_days/number_days_period);
-          // It shouln't happen but ....
-          if ( my_perc<0 ) my_perc=0;
+          const number_days_period=DateUtils.getListDates(period_dates.start, period_dates.end).length;
 
-          // Ok, are we in the bebinning or the end?
-          var is_at_end=null;
-          if ( my_perc > 0 ) {
-            // If my first date is the first date of the period => is the end
-            if ( item.periods[period_name][0].getTime() === period_dates.start.getTime() ) {
-              is_at_end=true;
-              eSpan.style.right=my_perc + "%";
-            } else {
-              is_at_end=false;
-              eSpan.style.left=my_perc + "%";
-            }
-          } else {
-            eSpan.style.right=0;
-          }
-          
+          const task_dates=item.periods[period_name];
+          const my_first_date=task_dates[0];
+          const my_last_date=task_dates[task_dates.length-1];
+
+          // We haver to compute for the box
+          // - space in the start
+          // - space at the end
+          // - width
+          const number_days_start = my_first_date < period_dates.start ? 0 : DateUtils.getListDates( period_dates.start, my_first_date   ).length - 1;
+          const number_days_end   = my_last_date  > period_dates.end   ? 0 : DateUtils.getListDates( my_last_date      , period_dates.end).length - 1;
+          const perc_start=parseInt(100*number_days_start/number_days_period);
+          const perc_end=parseInt(100*number_days_end/number_days_period);
+          const perc_width=100-(perc_start+perc_end);
+
+          eSpan.style.left=perc_start + "%";
+          eSpan.style.width=perc_width + "%";
+
           if ( Log.log_is_low_debug() ) {
             Log.log_low_debug(
               "Period : " + period_name + 
+              ", period_limits : [" + DateUtils.date2Str(period_dates.start) + ", " + DateUtils.date2Str(period_dates.end) + "]" +
+              ", task_limits : [" + DateUtils.date2Str(my_first_date) + ", " + DateUtils.date2Str(my_last_date) + "]" +
               ", number_days_period : " + number_days_period + 
-              ", my_days : " + my_days + 
-              ", my_perd : " + my_perc + 
-              ", my_first_date : " + item.periods[period_name][0] +
-              ", period_first_date : " + period_dates.start +
-              ", is_at_end : " + is_at_end + 
+              ", number_days_start : " + number_days_start + 
+              ", number_days_end : " + number_days_end +
+              ", perc_start : " + perc_start +
+              ", perc_end : " + perc_end +
+              ", perc_width : " + perc_width +
               "."
             );
           }
@@ -200,78 +194,78 @@ function buildPlanning(eContainer, jstree) {
 
     planning.headers.forEach(name => {
       if ( name !== 'Rol' ) {
+        var period_name=name;
+
         var eCell=document.createElement('div');
-        eCell.innerHTML=formatString(item[name]);
+        if ( item[period_name] ) {
+          eCell.innerHTML=item[period_name];
+        }
         eRow.appendChild(eCell);
       }
     });
   });
 }
 
+/**
+ * - Header : periods of fime
+ * - Row    : every row is a rol and for every period show the infor about FTEs.
+ */
 export function getPlanning(jstree) {
-  // 1> Build ftes_rol_period that is a map by rol and period so given a rol 
-  // we have the sum of all the FTEs needed for every period adding the need of all 
-  // the simple tasks.
-  var ftes_rol_period={};
-  var start_date=null;
-  var end_date=null;
-  walk_tree(jstree, node => {
-    // We only check the simple tasks because we the composed
-    // we will have multiple sums when processing parent / child tasks.
-    if ( !node.data.isComposed ) {
-      if ( node.data.start_date && node.data.end_date ) {
-        const my_start=DateUtils.str2Date(node.data.start_date);
-        const my_end=DateUtils.str2Date(node.data.end_date);
-        if ( !start_date || my_start<start_date) start_date=my_start;
-        if ( !end_date   || my_end>end_date    ) end_date=my_end;
-
-        // To compute the FTES we have to compute how many working days we have in the range [my_start, my_end]
-        const list_dates=DateUtils.getListDates(my_start, my_end);
-        var total_days=0;
-        list_dates.forEach(dt => {
-          // TODO : we could consideer other holidays and even some "special periods" as 
-          // the summer/christmas
-          if ( !DateUtils.isWeekend(dt) ) ++total_days;
-        });
-        if ( total_days === 0 ) {
-          throw new Error("There are no working days in the period [" + my_start + "," + my_end + "]");
-        }
-
-        // Now create groups in months
-        const periods=groupListElements(list_dates, getKeyDate);
-
-        // Finally, for every rol and period compute the number of FTEs and add them.
-        // NOTE : We're using a linear distribution here but another algorithm should be possible
-        for (const rol in node.data.md ) {
-          for(const period in periods) {
-            if ( !ftes_rol_period[rol] ) ftes_rol_period[rol]={};
-            if ( !ftes_rol_period[rol][period] ) ftes_rol_period[rol][period]=0;
-            ftes_rol_period[rol][period] += node.data.md[rol]/total_days;
-          }
-        }
-      }
-    }
+  // 1> For the root node (project)
+  // - Get all the Simple Tasks
+  // - For every day, sum the FTEs for every rol for all the tasks
+  // - Maks monthly groups with all those FTEs.
+  // - Calculate dtatistichal data as max/min/avg
+  var all_ts={};
+  get_simple_nodes(jstree, null).forEach(node => {
+    TS.extendsTS(all_ts, TS.getNodeTS(node));
   });
-  Log.log_low_debug("start_date : " + start_date);
-  Log.log_low_debug("end_date : " + end_date);
+  TS.collapseTSPoints(all_ts);
+  var gr_ts=TS.groupTS(all_ts, dt => {
+    return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
+  });
+  TS.averageTS(gr_ts);
 
-  // 2> Create the data structured as table so it can be exported as CSV and displayed
-  // - Header : Rol + Periods (months)
-  // - Every line : FTEs for that rol in the different periods
-  const period_names=Object.keys(groupListElements(DateUtils.getListDates(start_date, end_date), getKeyDate)).sort();
-  var headers=['Rol', ...period_names];
-
-  var list=[];
-  for (const rol in ftes_rol_period ) {
-    var item={'Rol' : rol};
-    period_names.forEach(period => {
-      item[period]=ftes_rol_period[rol][period] ? ftes_rol_period[rol][period] : "";
+  // 2> Get the list of all the roles
+  var roles=[];
+  for(const period in gr_ts) {
+    gr_ts[period].points.forEach(point => {
+      for(const rol in point) {
+        if ( !roles.includes(rol) ) roles.push(rol);
+      }
     });
-    list.push(item);
   }
 
+  // 3> Build the list
+  var list=[];
+  roles.forEach(rol => {
+    var row={'Rol' : rol};
+    for(const period in gr_ts) {
+      var item=gr_ts[period];
+
+      row[period]=''
+      if ( item.max[rol] ) row[period] += 'Max : ' + formatString(item.max[rol]) + "<br/>";
+      if ( item.min[rol] ) row[period] += 'Min : ' + formatString(item.min[rol]) + "<br/>";
+      if ( item.avg[rol] ) row[period] += 'Avg : ' + formatString(item.avg[rol]);
+    }
+    list.push(row);
+  });
+
+  // 4> Get need to get an ordered and continuous list of periods.
+  // In fr_ts the keys are the periods but:
+  // - The are not ordered
+  // - The can not be compelte (if in a period there are no FTEs, it will not appear)
+  var start_date=null;
+  var end_date=null;
+  for(const period in gr_ts) {
+    var dates=getDatesInGroup(period);
+    if ( !start_date || dates.start < start_date) start_date=dates.start;
+    if ( !end_date   || dates.end   > end_date  ) end_date=dates.end;
+  }
+  const period_names=getGroupListElements(DateUtils.getListDates(start_date, end_date), getKeyDate);
+
   return {
-    'headers' : headers,
+    'headers' : ['Rol', ...period_names],
     'list'    : list
   }
 }
@@ -466,4 +460,17 @@ function showDetailByPeriod(eContainer, period, jstree) {
       }
     });
   });
+}
+
+/**
+ * Return a list of simple nodes children of a certain node.
+ */
+function get_simple_nodes(jstree, root) {
+  var list=[];
+
+  walk_tree(jstree, node => {
+    if ( !node.data.isComposed ) list.push(node);
+  }, root);
+
+  return list;
 }
