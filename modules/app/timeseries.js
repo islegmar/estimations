@@ -31,7 +31,7 @@ export function getNodeTS(node, map_roles) {
   var data={};
 
   if ( node.data?.start_date && node.data?.end_date ) {
-    const costs_by_rol=getCostsByCenter(map_roles, node.data.center_costs)
+    const costs_by_rol=getCostsByCenter(map_roles, node.data.cost_center)
     // The working days
     var list_days=DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date), dt => {
       return !DateUtils.isWeekend(dt);
