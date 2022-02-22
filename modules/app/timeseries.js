@@ -110,6 +110,9 @@ export function groupTSAttributeValues(ts, attr, fUpd) {
  * - Average value
  * among the points.
  * TODO: use addNewTSAttribute, so those values become new attributes (now they are objects instead list-of-points)
+ * FIXME: avg is not calculated ok because I divide the FTEs for any rol
+ * by the same ror:points when this is not true, becuase maybe some points
+ * have some roles and other not.
  */
 export function averageTS(ts) {
   for(const period in ts) {
@@ -118,18 +121,15 @@ export function averageTS(ts) {
     // We're going to create those new values
     item['max']={};
     item['min']={};
-    item['avg']={};
-    // FIXME: avg is not calculated ok because I divide the FTEs for any rol
-    // by the same ror:points when this is not true, becuase maybe some points
-    // have some roles and other not.
+    // item['avg']={};
     var tot_points=item.ftes.length;
     item.ftes.forEach(point => {
       for(const k in point) {
         if ( !item['max'][k] || point[k]>item['max'][k]) item['max'][k]=point[k];
         if ( !item['min'][k] || point[k]<item['min'][k]) item['min'][k]=point[k];
 
-        if ( !item['avg'][k] ) item['avg'][k]=0;
-        item['avg'][k] += point[k]/tot_points;
+        //if ( !item['avg'][k] ) item['avg'][k]=0;
+        //item['avg'][k] += point[k]/tot_points;
       }
     });
   }

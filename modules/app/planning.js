@@ -249,7 +249,7 @@ export function getPlanning(jstree, root, map_roles) {
       row[period]=''
       if ( item.max[rol] )   row[period] += 'Max : '  + formatString(item.max[rol]) + "<br/>";
       if ( item.min[rol] )   row[period] += 'Min : '  + formatString(item.min[rol]) + "<br/>";
-      if ( item.avg[rol] )   row[period] += 'Avg : '  + formatString(item.avg[rol]) + "<br/>";
+      // if ( item.avg[rol] )   row[period] += 'Avg : '  + formatString(item.avg[rol]) + "<br/>";
       if ( item.costs[0][rol] ) row[period] += formatString(item.costs[0][rol], formatterCost);
     }
     list.push(row);
