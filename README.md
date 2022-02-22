@@ -362,10 +362,15 @@ TBD
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)
 - DONE : Support for several pricing. The same role names can have an attribute with different cost.
 - DONE : Refactor the JS code to support modules
+- DONE : When showing the timeline (monthly), add some degradation or something else to put empty before start / after end => a box is displayes just with the duration
+- DONE : Add some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration
 - Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.
 - Clone tasks (and sub-tasks)
 - Bug : search stop working
 - When exporting CSV, add a column if there is a warning.
 - In index.html possibility for cleaning from tree some config data / project
-- When showing the timeline (monthly), add some degradation or something else to put empty before start / after end
-- Add some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration
+- Distinguish the duration in effort AND duration in planning
+- Fix calculation error in avg
+- In timeseries, when computing the min/max/avg, allow to do it to any attribute (fex. now we compute it for ftes but could be done for costs). Also min/max/avg should be attributes in the TS (as [{}]) and we can heve several; eg. ftes => min_ftes, max_ftes, avg_ftes
+- Graphics: show costs and acummulated costs
+- Graphics: use it to display the Gantt instead the table

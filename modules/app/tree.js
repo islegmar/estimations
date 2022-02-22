@@ -250,6 +250,7 @@ export function createJSTree($container_parent, $container, $search, root_node, 
     document.dispatchEvent(new CustomEvent("custom.planning.refresh", {
       detail : {
         jstree    : jstree, 
+        map_roles : map_roles, 
         container : document.getElementById('tab_planning')
       }
     }));

@@ -15,6 +15,7 @@ export function getListDates(d_start, d_end, fCheck=null) {
 
 export function sumWorkingDays(dt, tot) {
   var my_dt=new Date(dt);
+  --tot; // If tot=1 => do nothing
   while ( tot>0 ) {
     my_dt.setDate(my_dt.getDate()+1);
     if ( !isWeekend(my_dt) ) --tot;
@@ -25,6 +26,7 @@ export function sumWorkingDays(dt, tot) {
 
 export function substractWorkingDays(dt, tot) {
   var my_dt=new Date(dt);
+  --tot; // If tot=1 => do nothing
   while ( tot>0 ) {
     my_dt.setDate(my_dt.getDate()-1);
     if ( !isWeekend(my_dt) ) --tot;

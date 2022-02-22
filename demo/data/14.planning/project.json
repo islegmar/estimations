@@ -1,6 +1,6 @@
 {
   "Project" : { "tasks" : ["Definition", "Development"] },
-  "Definition" : { "tasks" : ["Workshops"], "start_date" : "03/02/2022", "end_date" : "10/02/2022" },
+  "Definition" : { "tasks" : ["Workshops"], "start_date" : "21/02/2022", "end_date" : "15/03/2022" },
   "Development" : { 
     "tasks" : [
       { "name" : "STD Plugin", "description" : "Dev#1" },
@@ -11,5 +11,5 @@
     "end_date"   : "31/08/2022" 
   },
   "STD Plugin" : { "duration" : 5, "BE" : 1, "FE" : 0.5},
-  "Workshops"  : { "duration" : 5, "PO" : 1, "A" : 1.0, "BE" : 0.25 }
+  "Workshops"  : { "duration" : "inherit", "PO" : 1, "A" : 1.0, "BE" : 0.25 }
 }
