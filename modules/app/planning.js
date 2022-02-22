@@ -1,6 +1,6 @@
 import * as DateUtils from '../lib/dates.js';
 import * as Log from '../lib/log.js';
-import { removeChildren, groupListElements, getGroupListElements, formatString } from '../lib/utils.js';
+import { removeChildren, groupListElements, getGroupListElements, formatString, formatterCost} from '../lib/utils.js';
 
 import { walk_tree } from './exports.js';
 import { showGraphics } from './graphics.js';
@@ -8,7 +8,7 @@ import * as TS  from './timeseries.js';
 
 document.addEventListener("custom.planning.refresh", function (evt) {
   const eContainer=evt.detail.container;
-  buildGantt(eContainer.querySelector('#gantt'), evt.detail.jstree);
+  buildGantt(eContainer.querySelector('#gantt'), evt.detail.jstree, evt.detail.map_roles);
 });
 
 // ----------------------------------------------------------------------- Gantt
@@ -16,7 +16,7 @@ document.addEventListener("custom.planning.refresh", function (evt) {
  * Build the table with the Gantt that contains all the tasks / periods.
  * If a Task is clicable, a detail view for the FTEs for that task is shown
  */
-function buildGantt(eTable, jstree) {
+function buildGantt(eTable, jstree, map_roles) {
   removeChildren(eTable);
   const gantt=getGantt(jstree);
   
@@ -37,7 +37,7 @@ function buildGantt(eTable, jstree) {
     eCell.classList.add("busy");
     eCell.classList.add("level_" + item.level);
     eCell.classList.add("clicable");
-    eCell.addEventListener('click', buildPlanning.bind(this, document.querySelector("#detail_task_by_rol"), jstree, item.node), false);
+    eCell.addEventListener('click', buildPlanning.bind(this, document.querySelector("#detail_task_by_rol"), jstree, item.node, map_roles), false);
     eRow.appendChild(eCell);
 
     gantt.headers.forEach(name => {
@@ -133,7 +133,7 @@ function getGantt(jstree) {
 // -------------------------------------------------------------------- Planning
 // TODO: change the name, this is confusing.
 // Here we show, given a Task, the detail FTEs for the different periods
-function buildPlanning(eContainer, jstree, node) {
+function buildPlanning(eContainer, jstree, node, map_roles) {
   showGraphics(jstree, node);
 
   eContainer.querySelector('.header').innerHTML = node.text;
@@ -141,7 +141,7 @@ function buildPlanning(eContainer, jstree, node) {
   var eTable=eContainer.querySelector('.content');
 
   removeChildren(eTable);
-  const planning=getPlanning(jstree, node);
+  const planning=getPlanning(jstree, node, map_roles);
 
   // Header: Rol + Periods
   var eHeader=document.createElement('div');
@@ -180,26 +180,59 @@ function buildPlanning(eContainer, jstree, node) {
  * - Header : periods of fime
  * - Row    : every row is a rol and for every period show the infor about FTEs.
  */
-export function getPlanning(jstree, root) {
+export function getPlanning(jstree, root, map_roles) {
   // 1> For the root node (project)
-  // - Get all the Simple Tasks
-  // - For every day, sum the FTEs for every rol for all the tasks
-  // - Maks monthly groups with all those FTEs.
-  // - Calculate dtatistichal data as max/min/avg
+  // all_ts:
+  // - key : dd/mm/yyyy
+  // - attributes :
+  //   + ftes : several points, every point is the FTE required by one task (node)
+  //   + costs : several points, every point is the Cost associated by one task (node)
   var all_ts={};
   get_simple_nodes(jstree, root).forEach(node => {
-    TS.extendsTS(all_ts, TS.getNodeTS(node));
+    TS.extendsTSAttributes(all_ts, TS.getNodeTS(node, map_roles));
   });
-  TS.collapseTSPoints(all_ts);
-  var gr_ts=TS.groupTS(all_ts, dt => {
+  // Grouping the attributes' values mean sum, so now we have:
+  // - key : dd/mm/yyyy
+  // - attributes :
+  //   + ftes : one point, with the sum => total FTEs for that day
+  //   + costs : one point, with the sum => total Cost for that day
+  TS.groupTSAttributeValues(all_ts, 'ftes');
+  TS.groupTSAttributeValues(all_ts, 'costs');
+  // Grouping the keys:
+  // - key : mm-yyyy
+  // - attributes :
+  //   + ftes : several points, each of them the total FTEs for a single day
+  //   + costs : several points, each of them the total cost for a single day
+  // NOTE: while suming the points representing the costs has sense (I will get the total
+  // cost for that period), it is not the same with the FTEs
+  var gr_ts=TS.groupTSKey(all_ts, dt => {
     return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
   });
+  // Add new "attributes"
+  // - min : min FTEs for every rol in that period
+  // - max : max FTEs for every rol in that period
+  // - avg : avg FTEs for every rol in that period
+  // TODO: that probably will be changed in the future. I put "attributes" because now those new 
+  // values are {} instead [{}] as it is with the attributes.
   TS.averageTS(gr_ts);
+  // Sum again the costs, so now 
+  // - costs : single point with the sum of the costs => total cost by rol during that period
+  TS.groupTSAttributeValues(gr_ts, 'costs');
+  // Add a new attribute with the total cost per period, summing the costs for every rol
+  for(const period in gr_ts) {
+    gr_ts[period].costs.forEach(item => {
+      var tot=0;
+      for(const rol in item) {
+        tot+=item[rol];
+      }
+      item['Total']=tot;
+    });
+  }
 
   // 2> Get the list of all the roles
   var roles=[];
   for(const period in gr_ts) {
-    gr_ts[period].points.forEach(point => {
+    gr_ts[period].ftes.forEach(point => {
       for(const rol in point) {
         if ( !roles.includes(rol) ) roles.push(rol);
       }
@@ -214,12 +247,23 @@ export function getPlanning(jstree, root) {
       var item=gr_ts[period];
 
       row[period]=''
-      if ( item.max[rol] ) row[period] += 'Max : ' + formatString(item.max[rol]) + "<br/>";
-      if ( item.min[rol] ) row[period] += 'Min : ' + formatString(item.min[rol]) + "<br/>";
-      if ( item.avg[rol] ) row[period] += 'Avg : ' + formatString(item.avg[rol]);
+      if ( item.max[rol] )   row[period] += 'Max : '  + formatString(item.max[rol]) + "<br/>";
+      if ( item.min[rol] )   row[period] += 'Min : '  + formatString(item.min[rol]) + "<br/>";
+      if ( item.avg[rol] )   row[period] += 'Avg : '  + formatString(item.avg[rol]) + "<br/>";
+      if ( item.costs[0][rol] ) row[period] += formatString(item.costs[0][rol], formatterCost);
     }
     list.push(row);
   });
+  // Add a list row with the totals
+  var totals={'Rol' : 'Totals'};
+  for(const period in gr_ts) {
+    totals[period]=0;
+    gr_ts[period].costs.forEach(item => {
+      totals[period]+=item['Total'];
+    });
+    totals[period] = formatString(totals[period], formatterCost);
+  }
+  list.push(totals);
 
   // 4> Get need to get an ordered and continuous list of periods.
   // In fr_ts the keys are the periods but:

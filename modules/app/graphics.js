@@ -88,9 +88,9 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
   // - For every day, sum the FTEs for every rol for all the tasks
   var all_ts={};
   get_simple_nodes(jstree, root).forEach(node => {
-    TS.extendsTS(all_ts, TS.getNodeTS(node));
+    TS.extendsTSAttributes(all_ts, TS.getNodeTS(node));
   });
-  TS.collapseTSPoints(all_ts);
+  TS.groupTSAttributeValues(all_ts);
 
   // all_ts contains for every day all the FTEs per rol, that are the points we want to show
   // We want to get the date range so all the days are shown.
@@ -103,7 +103,7 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
   // Our dataset (number of lines) will consist in all the roles.
   var datasets={};
   for(const period in all_ts) {
-    all_ts[period].points.forEach(point => {
+    all_ts[period].ftes.forEach(point => {
       for(const rol in point) {
         if ( !datasets[rol] ) {
           datasets[rol]={
@@ -124,11 +124,11 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
     all_roles.forEach(rol => {
       if (all_ts[s_dt]) {
         console.log(">>> rol : " + rol);
-        console.log(">>> points : " + JSON.stringify(all_ts[s_dt].points[0]));
-        console.log(">>> points : " + JSON.stringify(all_ts[s_dt].points[0][rol]));
+        console.log(">>> points : " + JSON.stringify(all_ts[s_dt].ftes[0]));
+        console.log(">>> points : " + JSON.stringify(all_ts[s_dt].ftes[0][rol]));
       }
 
-      datasets[rol].data.push(all_ts[s_dt] && all_ts[s_dt].points[0][rol] ? all_ts[s_dt].points[0][rol] : 0);
+      datasets[rol].data.push(all_ts[s_dt] && all_ts[s_dt].ftes[0][rol] ? all_ts[s_dt].ftes[0][rol] : 0);
     });
   });
   console.log(JSON.stringify(datasets, null,2));

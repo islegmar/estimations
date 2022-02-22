@@ -261,6 +261,7 @@ export function getRootNodes(d_flat) {
 // ---- Utilities
 /**
  * Utility : given 2 maps with numbers (eg. efforts), return the sum
+ * TODO: remove and use the most generic udateMaps
  */
 export function sumMaps(map1, map2) {
   const ret = cloneJSON(map1);
@@ -275,13 +276,31 @@ export function sumMaps(map1, map2) {
   return ret;
 }
 
-export function updateMap(curr_values, new_values) {
-  for (const k in new_values ) {
-    if ( !curr_values[k] ) {
-      curr_values[k]=0;
+/**
+ * Update the values of curr_values with the values of the map(s) new_values (it can be
+ * a sinbke map or a list) using the function fUpd.
+ * By default fUpd is the sum, so this function will "sum the two maps", so that means 
+ * the value of every key in the map will be the sum of the value of that key in the maps.
+ * Other uses could be:
+ * - maximum values => (a,b,l) => { return a>b ? a : b}
+ * - minimum values => (a,b,l) => { return a<b ? a : b}
+ * Another common use is that initially curr_values={}, so there we will get the final result.
+ * TODO: move to utils.js
+ */
+export function updateMap(curr_values, new_values, fUpd=(a,b,l) => {return a+b}) {
+  var list_new_values=Array.isArray(new_values) ? new_values : [new_values];
+  list_new_values.forEach(item => {
+    for (const k in item ) {
+      if ( !curr_values[k] ) curr_values[k]=0;
+      // curr_values[k]+=new_values[k];
+      console.log("[" + k + "] " + curr_values[k] + " vs " + item[k] + " => " + fUpd(curr_values[k], item[k]));
+      curr_values[k]=fUpd(curr_values[k], item[k], list_new_values);
     }
-    curr_values[k]+=new_values[k];
-  }
+  });
+
+  // Utility, return the updated, so we can have expressions like
+  // return updateMap({}, values);
+  return curr_values;
 }
 
 /**
@@ -399,3 +418,24 @@ export function getCostsByCenter(map_roles, center, use_default=true) {
 
   return costs;
 }
+
+/*
+var x = { 'a' : 1, 'b':20};
+var y = { 'a' : 10, 'b':2};
+updateMap(x,y);
+alert(JSON.stringify(x));
+
+var x = { 'a' : 1, 'b':20};
+var y = { 'a' : 10, 'b':2};
+var res={};
+updateMap(
+  res,
+  [
+    { 'a' : 12 },
+    { 'a' : 2, 'b' : 45 },
+    { 'b' : 22, 'c' : 14 },
+  ],
+  (a,b,l) => { return a>b ? a : b}
+);
+alert(JSON.stringify(res));
+*/

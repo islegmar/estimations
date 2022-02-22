@@ -26,17 +26,17 @@ var ts1 = TS.getNodeTS(node1);
 var ts2 = TS.getNodeTS(node2);
 
 var all_ts={};
-TS.extendsTS(all_ts, ts1);
-TS.extendsTS(all_ts, ts2);
+TS.extendsTSAttributes(all_ts, ts1);
+TS.extendsTSAttributes(all_ts, ts2);
 
 L.log_info(ts1);
 L.log_info(ts2);
 L.log_info(all_ts);
   
-TS.collapseTSPoints(all_ts);
+TS.groupTSAttributeValues(all_ts);
 L.log_info(all_ts);
 
-var gr_ts=TS.groupTS(all_ts, dt => {
+var gr_ts=TS.groupTSKey(all_ts, dt => {
   return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
 });
 L.log_info(gr_ts);
