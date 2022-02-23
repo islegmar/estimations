@@ -7,64 +7,74 @@ import * as TS  from './timeseries.js';
 
 const COLORS=['blue', 'red', 'green', 'cyan', 'yellow', 'orange'];
 
-/*
-https://stackoverflow.com/questions/27910719/in-chart-js-set-chart-title-name-of-x-axis-and-y-axis
+export function showGraphics(jstree, root, map_roles) {
+  // graphic_ftes_roles_per_day("chart_ftes_daily", jstree, root);
+  graphic_ftes_roles_per_period("chart_ftes_period", jstree, root, map_roles);
+  graphic_costs("chart_costs", jstree, root, map_roles);
+}
 
-Explore time scales. If using says something not implemented, maybe a plugin is required ...
-
- scales: {
-   xAxes: [ {
-     type: 'time',
-     display: true,
-     scaleLabel: {
-       display: true,
-       labelString: 'Date'
-     },
-     ticks: {
-       major: {
-         fontStyle: 'bold',
-         fontColor: '#FF0000'
-       }
-     }
-   }],
-*/
-export function showGraphics(jstree, root) {
+// -------------------------------------------------------------------- Graphics
+function graphic_ftes_roles_per_day(name, jstree, root) {
   var data=get_dataset_roles_ftes_by_day(jstree, root);
 
-  // X values
   var xValues = [];
   data.dates.forEach(dt => {
     xValues.push(DateUtils.date2Str(dt));
   });
-
-  // Sets for the Y values
   var datasets=data.datasets;
 
+  graphic_multi_line(name, xValues, datasets, root.text, 'Dates (no weekend)', 'FTEs');
+}
+
+function graphic_ftes_roles_per_period(name, jstree, root, map_roles) {
+  var data=get_dataset_roles_ftes_by_period(jstree, root, map_roles);
+
+  var xValues = data.dates;
+  var datasets=data.datasets;
+
+  graphic_multi_line(name, xValues, datasets, root.text, 'Months', 'FTEs (average)');
+}
+
+function graphic_costs(name, jstree, root, map_roles) {
+  var data=get_dataset_costs(jstree, root, map_roles);
+
+  var xValues = data.dates;
+  var datasets=data.datasets;
+
+  graphic_multi_line(name, xValues, datasets, root.text, 'Months', 'Costs (€)');
+}
+
+function graphic_multi_line(name, xValues, datasets, title, x_label, y_label) {
+
   // Build the graphic
-  new Chart("myChart", {
+  new Chart(name, {
     type: "line",
     data: {
       labels: xValues,
       datasets: datasets
     },
     options: {
+      bezierCurve: false,
       title : {
         display: true,
-        'text' : root.text
+        'text' : title
       },
       scales: {
         xAxes: [{
           display: true,
           scaleLabel: {
             display: true,
-            labelString: 'Dates (no weekends)'
+            labelString: x_label
           }
         }],
         yAxes: [{
           display: true,
           scaleLabel: {
             display: true,
-            labelString: 'FTEs'
+            labelString: y_label
+          },
+          ticks : {
+            min:0
           }
         }]
       },
@@ -77,7 +87,7 @@ export function showGraphics(jstree, root) {
     }
   });
 }
-
+// -------------------------------------------------------------------- Datasets
 /**
  * Dataset = [ Points per Rol ]
  * PointsPerRol = ( Day, FTEs for that Rol and Day )
@@ -90,7 +100,7 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
   get_simple_nodes(jstree, root).forEach(node => {
     TS.extendsTSAttributes(all_ts, TS.getNodeTS(node));
   });
-  TS.groupTSAttributeValues(all_ts);
+  TS.groupTSAttributeValues(all_ts, 'ftes');
 
   // all_ts contains for every day all the FTEs per rol, that are the points we want to show
   // We want to get the date range so all the days are shown.
@@ -110,7 +120,8 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
             data:[],
             borderColor:COLORS[Object.keys(datasets).length % COLORS.length],
             fill:false,
-            label:rol
+            label:rol,
+            lineTension:0
           };
         }
       }
@@ -122,13 +133,16 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
   dates_in_graphic.forEach(dt => {
     const s_dt=DateUtils.date2Str(dt);
     all_roles.forEach(rol => {
+      const value = all_ts[s_dt] && all_ts[s_dt].ftes[0][rol] ? all_ts[s_dt].ftes[0][rol] : 0;
       if (all_ts[s_dt]) {
+        console.log(">>> s_dt : " + s_dt);
         console.log(">>> rol : " + rol);
         console.log(">>> points : " + JSON.stringify(all_ts[s_dt].ftes[0]));
         console.log(">>> points : " + JSON.stringify(all_ts[s_dt].ftes[0][rol]));
+        console.log(">>> value : " + value);
       }
 
-      datasets[rol].data.push(all_ts[s_dt] && all_ts[s_dt].ftes[0][rol] ? all_ts[s_dt].ftes[0][rol] : 0);
+      datasets[rol].data.push(value);
     });
   });
   console.log(JSON.stringify(datasets, null,2));
@@ -139,6 +153,121 @@ function get_dataset_roles_ftes_by_day(jstree, root) {
   }
 }
 
+/**
+ * Dataset = [ Points per Rol ]
+ * PointsPerRol = ( Day, FTEs for that Rol and Day )
+ */
+function get_dataset_roles_ftes_by_period(jstree, root, map_roles) {
+  // All FTEs all the tasks
+  var all_ts={};
+  get_simple_nodes(jstree, root).forEach(node => {
+    TS.extendsTSAttributes(all_ts, TS.getNodeTS(node, map_roles));
+  });
+  // Sum per day
+  TS.groupTSAttributeValues(all_ts, 'ftes');
+  // Group by period
+  var gr_ts=TS.groupTSKey(all_ts, s_dt => {
+    return DateUtils.getKeyMonthYear(DateUtils.str2Date(s_dt));
+  });
+  // Average them
+  TS.averageTS(gr_ts, 'ftes');
+
+  const periods=DateUtils.sortPeriodsMonthYear(Object.keys(gr_ts));
+  const roles=TS.getValueNames(gr_ts);
+
+  // Now the points that are the FTEs per rol and period
+  // Our dataset (number of lines) will consist in all the roles.
+  var datasets={};
+  periods.forEach(period => {
+    roles.forEach(rol => {
+      if ( !datasets[rol] ) {
+        datasets[rol]={
+          data:[],
+          borderColor:COLORS[Object.keys(datasets).length % COLORS.length],
+          fill:false,
+          label:rol,
+          lineTension:0
+        };
+      }
+      const value = gr_ts[period] && gr_ts[period].ftes_avg[0].hasOwnProperty(rol) ? gr_ts[period].ftes_avg[0][rol] : 0;
+      datasets[rol].data.push(value);
+    });
+  });
+
+  return {
+    'dates'    : periods,
+    'datasets' : Object.values(datasets)
+  }
+}
+
+function get_dataset_costs(jstree, root, map_roles) {
+  // All FTEs all the tasks
+  var all_ts={};
+  get_simple_nodes(jstree, root).forEach(node => {
+    TS.extendsTSAttributes(all_ts, TS.getNodeTS(node, map_roles));
+  });
+  // Sum per day
+  TS.groupTSAttributeValues(all_ts, 'ftes');
+  // Group by period
+  var gr_ts=TS.groupTSKey(all_ts, s_dt => {
+    return DateUtils.getKeyMonthYear(DateUtils.str2Date(s_dt));
+  });
+  // Sum the costs per period
+  TS.groupTSAttributeValues(gr_ts, 'costs');
+
+  const periods=DateUtils.sortPeriodsMonthYear(Object.keys(gr_ts));
+  const roles=TS.getValueNames(gr_ts);
+
+  // Now the points that are the FTEs per rol and period
+  // Our dataset (number of lines) will consist in all the roles.
+  var datasets={};
+  var acum_costs={};
+  // Acum Costs
+  datasets['COST_TOTAL']={
+    data:[],
+    borderColor:COLORS[Object.keys(datasets).length % COLORS.length],
+    fill:false,
+    label:'Total Cost',
+    lineTension:0
+  };
+  datasets['COST_PERIOD']={
+    data:[],
+    borderColor:COLORS[Object.keys(datasets).length % COLORS.length],
+    fill:false,
+    label:'Cost by period',
+    lineTension:0
+  };
+  var tot_cost=0;
+  periods.forEach(period => {
+    var tot_cost_period=0;
+    roles.forEach(rol => {
+      const value = gr_ts[period] && gr_ts[period].costs[0].hasOwnProperty(rol) ? gr_ts[period].costs[0][rol] : 0;
+      /*
+      if ( !datasets[rol] ) {
+        datasets[rol]={
+          data:[],
+          borderColor:COLORS[Object.keys(datasets).length % COLORS.length],
+          fill:false,
+          label:rol,
+          lineTension:0
+        };
+      }
+      datasets[rol].data.push(value);
+      */
+      tot_cost += value;
+      tot_cost_period += value;
+    });
+    datasets['COST_PERIOD'].data.push(tot_cost_period);
+    datasets['COST_TOTAL'].data.push(tot_cost);
+  });
+
+  return {
+    'dates'    : periods,
+    'datasets' : Object.values(datasets)
+  }
+}
+
+// --------------------------------------------------------- Internanl Functions 
 function getMinMaxDates(list_str_dates) {
   var min=null;
   var max=null;

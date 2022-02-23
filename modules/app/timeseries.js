@@ -31,7 +31,7 @@ export function getNodeTS(node, map_roles) {
   var data={};
 
   if ( node.data?.start_date && node.data?.end_date ) {
-    const costs_by_rol=getCostsByCenter(map_roles, node.data.center_costs)
+    const costs_by_rol=getCostsByCenter(map_roles, node.data.cost_center)
     // The working days
     var list_days=DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date), dt => {
       return !DateUtils.isWeekend(dt);
@@ -50,9 +50,7 @@ export function getNodeTS(node, map_roles) {
 
     // Finally, create all the elements for that TS, one for every day
     list_days.forEach(dt => {
-      const s_date=DateUtils.date2Str(dt);
-      data[s_date] = {
-        date : dt,
+      data[DateUtils.date2Str(dt)] = {
         ftes  : [ cloneJSON(ftes)],
         costs : [ cloneJSON(costs)]
       }
@@ -70,9 +68,7 @@ export function extendsTSAttributes(t1, t2) {
 
   for (const key in t2) {
     if ( !t1[key] ) {
-      t1[key]={
-        date : t2[key].date
-      }
+      t1[key]={};
       attrs.forEach(attr => {
         t1[key][attr]=[];
       });
@@ -114,7 +110,23 @@ export function groupTSAttributeValues(ts, attr, fUpd) {
  * by the same ror:points when this is not true, becuase maybe some points
  * have some roles and other not.
  */
-export function averageTS(ts) {
+export function averageTS(ts, attr) {
+  addNewTSAttribute(ts, attr, attr + "_min", points => {
+    return [updateMap({}, points, (a,b) => { return a===null ? b : (a<b ? a : b);})];
+  });
+  addNewTSAttribute(ts, attr, attr + "_max", points => {
+    return [updateMap({}, points, (a,b) => { return a===null ? b : (a>b ? a : b);})];
+  });
+  for(const key in ts) {
+    var tot = updateMap({}, ts[key][attr], (a,b) => { return a+1;});
+    var sum = updateMap({}, ts[key][attr], (a,b) => { return a+b;});
+    var avg={};
+    for(const rol in sum) {
+      avg[rol]=sum[rol]/tot[rol];
+    }
+    ts[key][attr+"_avg"]=[ avg ];
+  }
+    /*
   for(const period in ts) {
     var item=ts[period];
 
@@ -133,6 +145,7 @@ export function averageTS(ts) {
       }
     });
   }
+  */
 }
 
 /**
@@ -174,11 +187,9 @@ export function groupTSKey(ts, fKey) {
 
   const attrs=getAttributes(ts);
   for (const k in ts) {
-    var key=fKey(ts[k].date);
+    var key=fKey(k);
     if ( !groupTS[key] ) {
-      groupTS[key]={
-        date : null
-      }
+      groupTS[key]={};
       attrs.forEach(attr => {
         groupTS[key][attr]=[];
       });
@@ -193,6 +204,22 @@ export function groupTSKey(ts, fKey) {
   }
 
   return groupTS;
+}
+
+export function getValueNames(ts) {
+  var names=[];
+  var attrs=getAttributes(ts);
+  for(const k in ts) {
+    attrs.forEach(attr => {
+      ts[k][attr].forEach(point => {
+        for (const value_name in point) {
+          if ( !names.includes(value_name) ) names.push(value_name);
+        }
+      })
+    });
+  }
+
+  return names;
 }
 
 

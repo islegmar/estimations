@@ -290,10 +290,9 @@ export function sumMaps(map1, map2) {
 export function updateMap(curr_values, new_values, fUpd=(a,b,l) => {return a+b}) {
   var list_new_values=Array.isArray(new_values) ? new_values : [new_values];
   list_new_values.forEach(item => {
-    for (const k in item ) {
-      if ( !curr_values[k] ) curr_values[k]=0;
+    for (const k in item ) { 
+      if ( !curr_values[k] ) curr_values[k]=null;
       // curr_values[k]+=new_values[k];
-      console.log("[" + k + "] " + curr_values[k] + " vs " + item[k] + " => " + fUpd(curr_values[k], item[k]));
       curr_values[k]=fUpd(curr_values[k], item[k], list_new_values);
     }
   });
