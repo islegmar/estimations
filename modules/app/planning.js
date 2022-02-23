@@ -1,4 +1,5 @@
 import * as DateUtils from '../lib/dates.js';
+import { getKeyMonthYear as getKeyDate, getDatesInGroupMonthYear as getDatesInGroup } from '../lib/dates.js';
 import * as Log from '../lib/log.js';
 import { removeChildren, groupListElements, getGroupListElements, formatString, formatterCost} from '../lib/utils.js';
 
@@ -134,7 +135,7 @@ function getGantt(jstree) {
 // TODO: change the name, this is confusing.
 // Here we show, given a Task, the detail FTEs for the different periods
 function buildPlanning(eContainer, jstree, node, map_roles) {
-  showGraphics(jstree, node);
+  showGraphics(jstree, node, map_roles);
 
   eContainer.querySelector('.header').innerHTML = node.text;
 
@@ -205,7 +206,8 @@ export function getPlanning(jstree, root, map_roles) {
   //   + costs : several points, each of them the total cost for a single day
   // NOTE: while suming the points representing the costs has sense (I will get the total
   // cost for that period), it is not the same with the FTEs
-  var gr_ts=TS.groupTSKey(all_ts, dt => {
+  var gr_ts=TS.groupTSKey(all_ts, s_dt => {
+    var dt=DateUtils.str2Date(s_dt);
     return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
   });
   // Add new "attributes"
@@ -214,7 +216,7 @@ export function getPlanning(jstree, root, map_roles) {
   // - avg : avg FTEs for every rol in that period
   // TODO: that probably will be changed in the future. I put "attributes" because now those new 
   // values are {} instead [{}] as it is with the attributes.
-  TS.averageTS(gr_ts);
+  TS.averageTS(gr_ts, 'ftes');
   // Sum again the costs, so now 
   // - costs : single point with the sum of the costs => total cost by rol during that period
   TS.groupTSAttributeValues(gr_ts, 'costs');
@@ -247,9 +249,9 @@ export function getPlanning(jstree, root, map_roles) {
       var item=gr_ts[period];
 
       row[period]=''
-      if ( item.max[rol] )   row[period] += 'Max : '  + formatString(item.max[rol]) + "<br/>";
-      if ( item.min[rol] )   row[period] += 'Min : '  + formatString(item.min[rol]) + "<br/>";
-      // if ( item.avg[rol] )   row[period] += 'Avg : '  + formatString(item.avg[rol]) + "<br/>";
+      if ( item.ftes_max[0][rol] )   row[period] += 'Max : '  + formatString(item.ftes_max[0][rol]) + "<br/>";
+      if ( item.ftes_min[0][rol] )   row[period] += 'Min : '  + formatString(item.ftes_min[0][rol]) + "<br/>";
+      if ( item.ftes_avg[0][rol] )   row[period] += 'Avg : '  + formatString(item.ftes_avg[0][rol]) + "<br/>";
       if ( item.costs[0][rol] ) row[period] += formatString(item.costs[0][rol], formatterCost);
     }
     list.push(row);
@@ -310,41 +312,4 @@ export function get_simple_nodes(jstree, root) {
   return list;
 }
 
-/**
- * Used to group the dates (by month-year)
- */ 
-function getKeyDate(dt) {
-  return (dt.getMonth() + 1).toString().padStart(2, "0") + "-" + dt.getFullYear().toString().substring(2);
-}
 
-/* Given the denomination of a group in format mm-yy (see getKeyDate) , it gives the start and end date. */
-function getDatesInGroup(group) {
-  var start=null;
-  var end=null;
-  const values=group.match(/(\d+)-(\d+)/);
-  if ( values ) {
-    const month=parseInt(values[1]-1);
-    const year=values[2].length==2 ? 2000 + parseInt(values[2]) : parseInt(values[2]);
-    Log.log_is_low_debug() && Log.log_low_debug("group : '" + group + "' => month (start 0) : '" + month + "', year : '" + year + "'");
-    start=new Date(year, month, 1);
-    end=new Date(year, month, 1);
-
-    while ( true ) {
-      end.setDate(end.getDate()+1);
-      if ( end.getMonth()!=month ) {
-        end.setDate(end.getDate()-1);
-        break;
-      }
-    }
-
-  } else {
-    throw new Eror("Group '" + group + "' does not have the format month-year");
-  }
-
-  Log.log_is_low_debug() && Log.log_low_debug("group : '" + group + "' => start : '" + start + "', end : '" + end + "'");
-
-  return {
-    'start' : start,
-    'end' : end
-  };
-}

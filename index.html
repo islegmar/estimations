@@ -77,24 +77,33 @@
   </div>
   <div id="tab_planning">
     <h2>Gantt</h2>
-    <div id="gantt"    class="table planning"></div>
-    <!--
-    <h2>FTEs</h2>
-    <div id="planning" class="table planning"></div>
-    <div id="detail_by_rol">
-      <h3 class="header"></h3>
-      <div class="content table planning"></div>
+    <div id="gantt" class="table planning"></div>
+    <div class="tabs">
+      <ul>
+        <li><a href="#tab_detail_task_by_rol">FTEs</a></li>
+        <!--
+        <li><a href="#tab_chart_ftes_daily">FTES - daily</a></li>
+        -->
+        <li><a href="#tab_chart_ftes_period">FTEs - period</a></li>
+        <li><a href="#tab_chart_costs">Costs</a></li>
+      </ul>
+      <div id="tab_detail_task_by_rol">
+        <div id="detail_task_by_rol">
+          <h2 class="header"></h2>
+          <div class="content table planning"></div>
+        </div>
     </div>
-    <div id="detail_by_period">
-      <h2 class="header"></h2>
-      <div class="content table planning"></div>
+    <!--
+    <div id="tab_chart_ftes_daily">
+      <canvas id="chart_ftes_daily"></canvas> 
     </div>
     -->
-    <div id="detail_task_by_rol">
-      <h2 class="header"></h2>
-      <div class="content table planning"></div>
+    <div id="tab_chart_ftes_period">
+      <canvas id="chart_ftes_period"></canvas>
     </div>
-    <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
+    <div id="tab_chart_costs">
+      <canvas id="chart_costs"></canvas>
+    </div>
   </div>
 </div>
 
