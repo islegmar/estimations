@@ -74,7 +74,7 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
   });
 
   if ( data.hasOwnProperty("duration") ) {
-    data.duration = ["inherit", "pending"].includes(data.duration) ? data.duration : daysHuman2Number(data.duration);
+    data.duration = data.duration === "pending" ? data.duration : daysHuman2Number(data.duration);
   } 
 
   // Composed : tasks
@@ -122,13 +122,13 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
     // 2> Initial calculation of the MD
     // duration : the values is the factor
     if ( duration ) {
-      if ( duration === "inherit" || duration === "pending" ) {
+      if ( duration === "pending" ) {
         Log.log_is_low_debug() && Log.log_low_debug("duration " + duration + " for " + JSON.stringify(item));
         var my_notes=[];
         for(const rol in effort ) {
           my_notes.push(effort[rol] + "x" + rol);
         }
-        notes += "[duration:" + duration + "] " + my_notes.join(" + ");
+        notes += my_notes.join(" + ");
       } else {
         notes += duration + " days of ";
         var my_notes=[];
@@ -196,7 +196,7 @@ export function getFlatItemNormalized(item, roles, type_activities, config) {
             for(const new_rol in entry) {
               var expr=entry[new_rol];
               my_notes.push(new_rol  + " (=" + expr + ")");
-              effort[new_rol]=computeExpression(expr, null, effort, { "duration" : !duration || duration==="inherit" || duration==="pending" ? 1.0 : duration});
+              effort[new_rol]=computeExpression(expr, null, effort, { "duration" : !duration || duration==="pending" ? 1.0 : duration});
             }
           });
           notes += " AND " + my_notes.join(" + ");

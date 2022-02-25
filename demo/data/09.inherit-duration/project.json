@@ -10,7 +10,7 @@
       "Sessions Customer"
     ]
   },
-  "Sessions Customer" : { "duration" : "inherit", "PO" : 1, "A" : 1.5 },
+  "Sessions Customer" : { "PO" : 1, "A" : 1.5 },
   "Development" : { "tasks" : [ "Simple Task" ] },
   "Simple Task"  : { "duration" : 20, "BE" : 2, "FE" : 1 }
 }

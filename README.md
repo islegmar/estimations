@@ -378,3 +378,4 @@ TBD
 - When exporting CSV, add a column if there is a warning.
 - In index.html possibility for cleaning from tree some config data / project
 - Graphics: use it to display the Gantt instead the table
+- Validate the start / end with the parent / child nodes.
