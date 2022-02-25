@@ -370,6 +370,7 @@ TBD
 - calculation error in avg
 - Graphics: show costs and acummulated costs
 - In timeseries, when computing the min/max/avg, allow to do it to any attribute (fex. now we compute it for ftes but could be done for costs). Also min/max/avg should be attributes in the TS (as [{}]) and we can heve several; eg. ftes => min_ftes, max_ftes, avg_ftes
+- Validate the start / end with the parent / child nodes.
 
 ### Todo
 - Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.
@@ -378,4 +379,3 @@ TBD
 - When exporting CSV, add a column if there is a warning.
 - In index.html possibility for cleaning from tree some config data / project
 - Graphics: use it to display the Gantt instead the table
-- Validate the start / end with the parent / child nodes.

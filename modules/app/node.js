@@ -133,18 +133,27 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
   // The computation of the duration is a little but more complicated ...
   setStartEndDuration(node, parent_node);
   
-  
   // In the composed, unless we have set an specific value for the duration, 
   // we get the one from the parent
-  /*if ( node.data.isComposed ) {
-    node.data.duration = daysHuman2Number(getValue(node.data, "my_duration", getValue(parent_node.data, "duration", null)));
-  } else {*/
-  // Check errors
   if ( !node.data.duration ) {
     if ( node.data.duration_template==="pending" ) {
       node.data.has_error = true;
       node.data.error_msg = "duration not set in node";
     } 
+  }
+
+  if ( node.data.start_date && parent_node.data.start_date ) {
+    if ( DateUtils.str2Date(node.data.start_date) < DateUtils.str2Date(parent_node.data.start_date) ) {
+      node.data.has_error = true;
+      node.data.error_msg = "Start date before than parent";
+    }
+  }
+
+  if ( node.data.end_date && parent_node.data.end_date ) {
+    if ( DateUtils.str2Date(node.data.end_date) > DateUtils.str2Date(parent_node.data.end_date) ) {
+      node.data.has_error = true;
+      node.data.error_msg = "End date after than parent";
+    }
   }
 
   // COMPOSED node

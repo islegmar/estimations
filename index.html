@@ -47,7 +47,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 
   <script type="text/javascript">
-  window.onerrorXX = function(msg, url, linenumber) {
+  window.onerror = function(msg, url, linenumber) {
     const text='Error message: '+msg+'\nURL: '+url+'\nLine Number: '+linenumber;
     log_error(text);
     alert(text);
