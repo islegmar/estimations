@@ -11,5 +11,5 @@
     "end_date"   : "31/08/2022" 
   },
   "STD Plugin" : { "duration" : 5, "BE" : 1, "FE" : 0.5},
-  "Workshops"  : { "duration" : "inherit", "PO" : 1, "A" : 1.0, "BE" : 0.25 }
+  "Workshops"  : { "PO" : 1, "A" : 1.0, "BE" : 0.25 }
 }

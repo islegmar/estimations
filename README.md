@@ -342,35 +342,40 @@ otherwise, run the browser in **insecure** mode:
 TBD
 
 ## Roadmap:
-- DONE : Add in **estimations** file the special attribute `"_includes" : <arrray URIs>`   that will include other files with estimations. That would allow the creation of a real database of reusable estimations that can be included when we do the estimations for an specific project (the main restimations file)
-- DONE : In **config** define a `"default squad" : <name>`. With it the estimations can be so *clean* as `"activity1" : { "size" : "S" }, "activity2" : { "size" : "L" } ....`
-- DONE : manage several root nodes
-- DONE : Drag & drop in the tree with the recalculation of the data (see what to do with the weights on cascade if any in the original tree)
-- DONE : possibility create and remove nodes in the tree
-- DONE : Possibility of modify some nodes in the tree, like description, weights, ...
-- DONE : When showing the combo with the activies: alphabetical order, add more info like if the task is Composed or Simple
-- DONE : In Composed task, if duration is set, compute the size team
-- DONE : Possibility of read several estimation files that are acumulative
-- DONE : Export in CSV
-- DONE : Export in JSON
-- DONE : Support for formulas
-- DONE : In the formulas we can calculate based on MD but also in Costs => not at task level but at column level with the definition of costs' fields in roles.
-- DONE : In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department => Instead this a more generic option has been implemented allowing in roles the calculation of derived fields using formulas which computation can be done in effort or costs. => Refactored: columns added in the "config" and they are computed when computing the nodes
-- DONE : support dor duration : parent/pending. If not set show a warning that can be popilated in the tree.
-- DONE : Import the exported JSON (that is NOT the same as the original flat_data)
-- DONE : When exporting in CSV configure in config the fields to be exported and their order => convert roles in an array so the order is kept
+
+### Done
+- Add in **estimations** file the special attribute `"_includes" : <arrray URIs>`   that will include other files with estimations. That would allow the creation of a real database of reusable estimations that can be included when we do the estimations for an specific project (the main restimations file)
+- In **config** define a `"default squad" : <name>`. With it the estimations can be so *clean* as `"activity1" : { "size" : "S" }, "activity2" : { "size" : "L" } ....`
+- manage several root nodes
+- Drag & drop in the tree with the recalculation of the data (see what to do with the weights on cascade if any in the original tree)
+- possibility create and remove nodes in the tree
+- Possibility of modify some nodes in the tree, like description, weights, ...
+- When showing the combo with the activies: alphabetical order, add more info like if the task is Composed or Simple
+- In Composed task, if duration is set, compute the size team
+- Possibility of read several estimation files that are acumulative
+- Export in CSV
+- Export in JSON
+- Support for formulas
+- In the formulas we can calculate based on MD but also in Costs => not at task level but at column level with the definition of costs' fields in roles.
+- In **roles** add the attribute `Department` that will allow to get also the costs by department as the sum of the costs of all the roles in that department => Instead this a more generic option has been implemented allowing in roles the calculation of derived fields using formulas which computation can be done in effort or costs. => Refactored: columns added in the "config" and they are computed when computing the nodes
+- support dor duration : parent/pending. If not set show a warning that can be popilated in the tree.
+- Import the exported JSON (that is NOT the same as the original flat_data)
+- When exporting in CSV configure in config the fields to be exported and their order => convert roles in an array so the order is kept
 - Create a Legend where the different formulas, costs... are explained (TODO: export in CSV?)
-- DONE : Support for several pricing. The same role names can have an attribute with different cost.
-- DONE : Refactor the JS code to support modules
-- DONE : When showing the timeline (monthly), add some degradation or something else to put empty before start / after end => a box is displayes just with the duration
-- DONE : Add some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration
+- Support for several pricing. The same role names can have an attribute with different cost.
+- Refactor the JS code to support modules
+- When showing the timeline (monthly), add some degradation or something else to put empty before start / after end => a box is displayes just with the duration
+- Add some logic to { duration, start, end } so if duration is set => end=start + duration OR start=end - duration
+- Distinguish the duration in effort AND duration in planning
+- calculation error in avg
+- Graphics: show costs and acummulated costs
+- In timeseries, when computing the min/max/avg, allow to do it to any attribute (fex. now we compute it for ftes but could be done for costs). Also min/max/avg should be attributes in the TS (as [{}]) and we can heve several; eg. ftes => min_ftes, max_ftes, avg_ftes
+- Validate the start / end with the parent / child nodes.
+
+### Todo
 - Add an abstraction layer with jstree so if we use another "tree provider" we can resuse most of the code.
 - Clone tasks (and sub-tasks)
 - Bug : search stop working
 - When exporting CSV, add a column if there is a warning.
 - In index.html possibility for cleaning from tree some config data / project
-- Distinguish the duration in effort AND duration in planning
-- Fix calculation error in avg
-- In timeseries, when computing the min/max/avg, allow to do it to any attribute (fex. now we compute it for ftes but could be done for costs). Also min/max/avg should be attributes in the TS (as [{}]) and we can heve several; eg. ftes => min_ftes, max_ftes, avg_ftes
-- Graphics: show costs and acummulated costs
 - Graphics: use it to display the Gantt instead the table

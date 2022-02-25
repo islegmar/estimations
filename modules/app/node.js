@@ -32,13 +32,13 @@ export function getTreeNodeData(name, d_flat_data) {
 
   // The field duration is "special". With the other fields (eg. weight) I can set the value
   // in the template or in the form and later can be calculated, but this is not exactly the case
-  // with duration becuase it has tow special values (inherit, pending) that can be set in the template BUT those values
+  // with duration becuase it has tow special values (pending) that can be set in the template BUT those values
   // can not be set in the form, there we're only allowed to set values as number / strings
   // Also we have to distinguish between 2 duration:
   // - The one in the templates is to calculate the effort and has nothing to do with the planning
-  // - The one set here is related with the planning BUT can have impact if the effort in the case inherit / pending
+  // - The one set here is related with the planning BUT can have impact if the effort in the case pending
   var my_duration = isComposed ? getValue(my_flat_data, "duration") : null;
-  my_duration=["pending", "inherit"].includes(my_duration) || !isComposed ? null : my_duration;
+  my_duration = my_duration === "pending" || !isComposed ? null : my_duration;
   var my_node={
     text : name, 
     name : name,
@@ -131,89 +131,28 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
   node.data.error_msg          = "";
 
   // The computation of the duration is a little but more complicated ...
-  //
-  // If the duration is inherit, that means we MUST get it from the parent
-  if ( node.data.duration_template==="inherit" ) {
-    node.data.duration = getValue(parent_node.data, "duration");
-  }
-
-  // The 3 variables start_date / end_date / duration are related, so we can compute
-  // some values using the others and we can play setting some defgault values
-  // If we have set the 3 variables, check if they are valid
-  if ( node.data.duration !== null && node.data.start_date !==null && node.data.end_date !== null ) {
-    Log.log_warn("TODO : check validity relation start_date / end_date / duration are related");
-  // At least one of the variables is set
-  } else if ( node.data.duration !== null || node.data.start_date !==null || node.data.end_date !== null ) {
-    // --- duration set
-    if ( node.data.duration !== null ) {
-      // Try to get the info from the parent
-      if ( node.data.start_date === null && node.data.end_date === null ) {
-        node.data.start_date = getValue (parent_node.data, "start_date");
-        if ( node.data.start_date === null ) {
-          node.data.end_date = getValue (parent_node.data, "end_date");
-        }
-      }
-
-      if ( node.data.start_date !==null ) {
-        node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
-      } else if ( node.data.end_date !== null ) {
-        node.data.start_date = DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration);
-      } else {
-        Log.log_debug("[duration!=null, start_date=null, set_date!=null] Set default value start_date = NOW");
-        node.data.start_date = DateUtils.getNowAsStr();
-        node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
-      }
-    // --- start_date set
-    } else if ( node.data.start_date !== null ) {
-      // Try to get the info from the parent
-      if ( node.data.duration === null && node.data.end_date === null ) {
-        node.data.end_date = getValue (parent_node.data, "end_date");
-      }
-
-      if ( node.data.duration !==null ) {
-        node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
-      } else if ( node.data.end_date !== null ) {
-        // node.data.duration = DateUtils.getNumberDays( DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date) );
-        node.data.duration = DateUtils.getTotWorkingDays( DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date)) );
-      } else {
-        Log.log_debug("[start_date!=null, duration==null, end_date!=null] No possible to set default values");
-      }
-    // --- end_date set
-    } else if ( node.data.end_date !== null ) {
-      // Try to get the info from the parent
-      if ( node.data.duration === null && node.data.start_date === null ) {
-        node.data.start_date = getValue (parent_node.data, "start_date", DateUtils.getNowAsStr());
-      }
-
-      if ( node.data.duration !==null ) {
-        node.data.start_date = DateUtils.date2Str( DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration) );
-      } else if ( node.data.start_date !== null ) {
-        // node.data.duration = DateUtils.getNumberDays( DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date) );
-        node.data.duration = DateUtils.getTotWorkingDays( DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date)) );
-      } else {
-        Log.log_debug("[end_date!=null, duration==null, start_date!=null] No possible to set default values");
-      }
-    } else {
-      throw new Error("This is never thrown!!!!");
-    }
-  }
-
-  // Ok, in this point we should have values for start/end/duration
-  
+  setStartEndDuration(node, parent_node);
   
   // In the composed, unless we have set an specific value for the duration, 
   // we get the one from the parent
-  /*if ( node.data.isComposed ) {
-    node.data.duration = daysHuman2Number(getValue(node.data, "my_duration", getValue(parent_node.data, "duration", null)));
-  } else {*/
-  // Check errors
   if ( !node.data.duration ) {
     if ( node.data.duration_template==="pending" ) {
       node.data.has_error = true;
       node.data.error_msg = "duration not set in node";
-    } else if ( node.data.duration_template==="inherit" ) {
+    } 
+  }
+
+  if ( node.data.start_date && parent_node.data.start_date ) {
+    if ( DateUtils.str2Date(node.data.start_date) < DateUtils.str2Date(parent_node.data.start_date) ) {
       node.data.has_error = true;
-      node.data.error_msg = "Inherit duration and not set in parent";
+      node.data.error_msg = "Start date before than parent";
+    }
+  }
+
+  if ( node.data.end_date && parent_node.data.end_date ) {
+    if ( DateUtils.str2Date(node.data.end_date) > DateUtils.str2Date(parent_node.data.end_date) ) {
+      node.data.has_error = true;
+      node.data.error_msg = "End date after than parent";
     }
   }
 
@@ -240,7 +179,7 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
       for (const k in node.data.effort ) {
         node.data.md[k] = node.data.effort[k] * node.data.weight;
         // Dynamic durations not resolved when normalizing the templates
-        if ( ["pending", "inherit"].includes(node.data.duration_template) ) {
+        if ( node.data.duration_template === "pending" ) {
           node.data.md[k] *= node.data.duration;
         }
       }
@@ -294,24 +233,13 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
   // -------------------------------------
   // NOTES
   node.data.notes="";
-  if ( node.data.weight!=1.0 ) {
-    node.data.notes+="[x" + node.data.weight + "] ";
-  }
-  if ( node.data.isComposed ) {
-    if ( node.data.duration ) {
-      node.data.notes+="[" + daysNumber2Human(node.data.duration) + "] Team : ";
-      var my_notes=[];
-      for ( const k in node.data.md ) {
-        my_notes.push(round(node.data.md[k]/node.data.duration) + "x" + k);
-      }
-      node.data.notes+=my_notes.join(" + ");
+  if ( !node.data.isComposed ) {
+    if ( node.data.weight!=1.0 ) {
+      node.data.notes+="[x" + node.data.weight + "] ";
     }
-  } else {
-    if ( node.data.duration_template==="inherit" ) {
-      node.data.notes+="[parent_duration:" + getValue(parent_node.data, "duration", "") + "]";
-    }
-    if ( node.data.duration_template==="pending" ) {
-      node.data.notes+="[my_duration:" + getValue(node.data, "duration", "") + "]";
+    if ( node.data.duration_template === "pending" ) {
+      node.data.notes += ( node.data.duration ? node.data.duration : "?" ) + " days of ";
+
     }
   }
   node.data.notes = node.data.notes + node.data.notes_template;
@@ -332,34 +260,96 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
 }
 
 export function updateTreeData(jstree, d_flat_data, roles, config) {
-  // cleanMDTreeNode(jstree);
   jstree.get_node('#').children.forEach(id => {
     recalculateNodeData(jstree, jstree.get_node(id), jstree.get_node('#'), roles, config);
   });
 }
 
+// ---------------------------------------------------------- Internal Functions
+
 /**
- * Recursive case. Clean the values for the calculated fields before we start a new calculation.
+ * The three variables start_date / end_date / duration are related and 
+ * also we can set the variables for ourseleves or get them from the parent.
+ *
+ *  FIRST
+ *  - If three are null => get all from parent
+ *  - If threw are set  => recompute duration
+ *  SECOND
+ *  - If three are null   => Noting
+ *  - It only one is set
+ *    + start
+ *      - end: get from parent
+ *      - duration: get from parent
+ *    + duration
+ *      - end: get from parent
+ *      - start: get from parent
+ *      - start: TODAY
+ *    + end:  
+ *      - start: get from parent
+ *      - duration: get from parent
+ *      - start: TODAY
+ *  - If two are set => calculate it using the others
  */
-/*
-export function cleanMDTreeNode(jstree, node) {
-  // Special case, the node '#' is not shown and its child (see below) is our root 
-  if ( !node ) {
-    node=jstree.get_node('#');
-  } else {
-    node.data.md                 = {};
-    node.data.weight             = null;
-    node.data.cost               = null;
-    node.data.notes              = "";
-    node.data.has_error          = false;
-    node.data.error_msg          = null;
-    node.data.additional_columns = [];
+function setStartEndDuration(node, parent_node) {
+  // 1> Extreme cases
+  if ( getTotSetValues(node) === 0 ) {
+    node.data.start_date  = getValue(parent_node.data, "start_date");
+    node.data.end_date    = getValue(parent_node.data, "end_date"  );
+    node.data.duration    = getValue(parent_node.data, "duration"  );
+  } 
+
+  // Recompute the duration, to be sure
+  if ( getTotSetValues(node) === 3 ) {
+    node.data.duration = null;
   }
 
-  //Set the effort in all the child nodes
-  node.children.forEach(id => {
-    cleanMDTreeNode(jstree, jstree.get_node(id));
-  });
+  // 2>  Only one set => try to get the others using parent or default values
+  if ( getTotSetValues(node) === 1 ) {
+    // START set
+    if ( node.data.start_date !== null ) {
+      node.data.end_date = getValue(parent_node.data, "end_date");
+      if ( node.data.end_date === null ) {
+        node.data.duration = getValue(parent_node.data, "duration");
+      }
+    // DURATION set
+    } else if ( node.data.duration !== null ) {
+      node.data.end_date = getValue(parent_node.data, "end_date");
+      if ( node.data.end_date === null ) {
+        node.data.start_date = getValue(parent_node.data, "start_date", DateUtils.getNowAsStr());
+      }
+    // END set
+    } else if ( node.data.end_date !== null ) {
+      node.data.start_date = getValue(parent_node.data, "start_date");
+      if ( node.data.start_date === null ) {
+        node.data.duration = getValue(parent_node.data, "duration");
+        if ( node.data.duration === null ) {
+          node.data.start_date = DateUtils.getNowAsStr();
+        }
+      }
+    } 
+  }
+  
+  // 3>  At this point, if I have 2 set I can get the other
+  if ( getTotSetValues(node) === 2 ) {
+    // START = end - duration
+    if ( node.data.start_date === null ) {
+      node.data.start_date = DateUtils.date2Str( DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration) );
+    // DURATION = end - start
+    } else if ( node.data.duration === null ) {
+      node.data.duration = DateUtils.getTotWorkingDays( DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date)) );
+    // END ; start + duration
+    } else if ( node.data.end_date === null ) {
+      node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
+    } 
+  }
+  
+  // Ok, in this point we should have values for start/end/duration .... or not :-)
 }
-*/
 
+function getTotSetValues(node) {
+  var tot=0;
+  [node.data.start_date, node.data.end_date, node.data.duration].forEach(value => {
+    if ( value!==null ) ++tot;
+  });
+  return tot;
+}
