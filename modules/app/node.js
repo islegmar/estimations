@@ -137,13 +137,99 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
     node.data.duration = getValue(parent_node.data, "duration");
   }
 
+  // FIRST
+  // - If three are null => get all from parent
+  // - If threw are set  => recompute duration
+  // SECOND
+  // - If three are null   => Noting
+  // - It only one is set
+  //   + start
+  //     - end: get from parent
+  //     - duration: get from parent
+  //   + duration
+  //     - end: get from parent
+  //     - start: get from parent
+  //     - start: TODAY
+  //   + end:  
+  //     - start: get from parent
+  //     - duration: get from parent
+  //     - start: TODAY
+  // - If two are set => calculate it using the others
+
+  var NEW_WAY=true;
+
+
+  if ( NEW_WAY ) {
+  // 1> Extreme cases
+  var tot=getTotSetValues(node);
+  if ( tot === 0 ) {
+    node.data.start_date  = getValue(parent_node.data, "start_date");
+    node.data.end_date    = getValue(parent_node.data, "end_date"  );
+    node.data.duration    = getValue(parent_node.data, "duration"  );
+    /*if ( getTotSetValues(node) === 0 ) {
+      node.data.start_date  = getNowAsStr();
+    }*/
+  // Recompute the duration, to be sure
+  } else if ( tot === 3 ) {
+    node.data.duration = null;
+  }
+
+  // 2>  Only one set => try to get th eothers using parent or default values
+  if ( getTotSetValues(node) === 1 ) {
+    // START set
+    if ( node.data.start_date !== null ) {
+      node.data.end_date = getValue(parent_node.data, "end_date");
+      if ( node.data.end_date === null ) {
+        node.data.duration = getValue(parent_node.data, "duration");
+      }
+    // DURATION set
+    } else if ( node.data.duration !== null ) {
+      node.data.end_date = getValue(parent_node.data, "end_date");
+      if ( node.data.end_date === null ) {
+        node.data.start_date = getValue(parent_node.data, "start_date", DateUtils.getNowAsStr());
+      }
+    // END set
+    } else if ( node.data.end_date !== null ) {
+      node.data.start_date = getValue(parent_node.data, "start_date");
+      if ( node.data.start_date === null ) {
+        node.data.duration = getValue(parent_node.data, "duration");
+        if ( node.data.duration === null ) {
+          node.data.start_date = DateUtils.getNowAsStr();
+        }
+      }
+    } 
+  }
+  
+  // 3>  At this point, if I have 2 set I can get the other
+  if ( getTotSetValues(node) === 2 ) {
+    // START = end - duration
+    if ( node.data.start_date === null ) {
+      node.data.start_date = DateUtils.date2Str( DateUtils.substractWorkingDays( DateUtils.str2Date(node.data.end_date), node.data.duration) );
+    // DURATION = end - start
+    } else if ( node.data.duration === null ) {
+      node.data.duration = DateUtils.getTotWorkingDays( DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date)) );
+    // END ; start + duration
+    } else if ( node.data.end_date === null ) {
+      node.data.end_date = DateUtils.date2Str( DateUtils.sumWorkingDays( DateUtils.str2Date(node.data.start_date), node.data.duration) );
+    } 
+  }
+  } else {
   // The 3 variables start_date / end_date / duration are related, so we can compute
   // some values using the others and we can play setting some defgault values
   // If we have set the 3 variables, check if they are valid
   if ( node.data.duration !== null && node.data.start_date !==null && node.data.end_date !== null ) {
     Log.log_warn("TODO : check validity relation start_date / end_date / duration are related");
+  // All three values are null
+  } else if ( node.data.duration === null && node.data.start_date ===null && node.data.end_date === null ) {
+    // TODO: we can try to guess the dates from the parent task, even if it is not inherit ... (at least for the composed)
+    Log.log_debug("[end_date==null, duration==null, start_date==null] No possible to set default values");
+    node.data.start_date  = getValue(parent_node.data, "start_date");
+    node.data.end_date    = getValue(parent_node.data, "end_date"  );
+    if ( node.data.start_date !== null && node.data.end_date !== null ) {
+      node.data.duration = DateUtils.getTotWorkingDays( DateUtils.getListDates(DateUtils.str2Date(node.data.start_date), DateUtils.str2Date(node.data.end_date)) );
+    }
   // At least one of the variables is set
-  } else if ( node.data.duration !== null || node.data.start_date !==null || node.data.end_date !== null ) {
+  } else {
     // --- duration set
     if ( node.data.duration !== null ) {
       // Try to get the info from the parent
@@ -197,8 +283,9 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
       throw new Error("This is never thrown!!!!");
     }
   }
+  }
 
-  // Ok, in this point we should have values for start/end/duration
+  // Ok, in this point we should have values for start/end/duration .... or not :-)
   
   
   // In the composed, unless we have set an specific value for the duration, 
@@ -362,4 +449,10 @@ export function cleanMDTreeNode(jstree, node) {
   });
 }
 */
-
+function getTotSetValues(node) {
+  var tot=0;
+  [node.data.start_date, node.data.end_date, node.data.duration].forEach(value => {
+    if ( value!==null ) ++tot;
+  });
+  return tot;
+}
