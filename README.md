@@ -216,6 +216,10 @@ Here you can see [the final file](demo/data/14.planning/project.json) and the [d
 #### Create from Scratch
 The [demo](index.html?log_level=low_debug&roles=demo/data/00.basic/roles.json)
 
+## FTEs, planning and videotapes
+
+TBD: duration effort vs. duration planning. Pending diration.
+
 ## Using the sandbox
 
 TBD
