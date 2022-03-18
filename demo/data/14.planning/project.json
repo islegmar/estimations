@@ -1,14 +1,24 @@
 {
-  "Project" : { "tasks" : ["Definition", "Development"] },
-  "Definition" : { "tasks" : ["Workshops"], "start_date" : "21/02/2022", "end_date" : "15/03/2022" },
+  "Project" : { 
+    "tasks" : [
+      "Definition", 
+      "Development"
+    ],
+    "end_date" : "31/12/2022"
+  },
+  "Definition" : { 
+    "tasks" : [
+      "Workshops"
+    ], 
+    "end_date" : "15/05/2022" 
+  },
   "Development" : { 
     "tasks" : [
       { "name" : "STD Plugin", "description" : "Dev#1" },
       { "name" : "STD Plugin", "description" : "Dev#2" },
       { "name" : "STD Plugin", "description" : "Dev#3", "weight" : 2.0 }
     ],
-    "start_date" : "01/04/2022", 
-    "end_date"   : "31/08/2022" 
+    "start_date" : "01/04/2022"
   },
   "STD Plugin" : { "duration" : 5, "BE" : 1, "FE" : 0.5},
   "Workshops"  : { "PO" : 1, "A" : 1.0, "BE" : 0.25 }

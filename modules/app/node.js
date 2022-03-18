@@ -142,14 +142,14 @@ export function recalculateNodeData(jstree, node, parent_node, roles, config) {
     } 
   }
 
-  if ( node.data.start_date && parent_node.data.start_date ) {
+  if ( node.data.start_date && parent_node.data?.start_date ) {
     if ( DateUtils.str2Date(node.data.start_date) < DateUtils.str2Date(parent_node.data.start_date) ) {
       node.data.has_error = true;
       node.data.error_msg = "Start date before than parent";
     }
   }
 
-  if ( node.data.end_date && parent_node.data.end_date ) {
+  if ( node.data.end_date && parent_node.data?.end_date ) {
     if ( DateUtils.str2Date(node.data.end_date) > DateUtils.str2Date(parent_node.data.end_date) ) {
       node.data.has_error = true;
       node.data.error_msg = "End date after than parent";

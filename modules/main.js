@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var container=document.getElementById('load_estimations');
             setListenerUploadJSON(container, 'estimations');
             // By default, create an empty project so we can start working
-            if ( !estimations ) estimations = { "MyProject" : { "tasks" : [], "start_date" : "18/08/2021", "end_date" : "15/03/2022"}};
+            if ( !estimations ) estimations = { "MyProject" : { "tasks" : []}};
 
             // In estimations because it can have includes, we need a callback to 
             // render when all the data has been loaded
